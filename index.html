@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>স্মার্ট এটেন্ডেন্স সিস্টেম</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- PapaParse for CSV parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    
+    <!-- HTML5 QR Code Scanner -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts: Hind Siliguri for Bengali -->
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Hind Siliguri', sans-serif;
+            background-color: #f3f4f6;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Scanner Overlay Animation */
+        .scan-line {
+            width: 100%;
+            height: 3px;
+            background: #10b981;
+            position: absolute;
+            top: 0;
+            left: 0;
+            box-shadow: 0 0 10px #10b981, 0 0 20px #10b981;
+            animation: scan 2s infinite linear;
+            z-index: 10;
+        }
+
+        @keyframes scan {
+            0% { top: 0; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        /* Video element fixes */
+        #reader { width: 100%; border-radius: 16px; overflow: hidden; border: none !important; }
+        #reader video { object-fit: cover; border-radius: 16px; }
+
+        /* Toast Animation */
+        .toast-enter { animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .toast-leave { animation: slideOut 0.4s ease-in forwards; }
+
+        @keyframes slideIn {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateY(0); opacity: 1; }
+            to { transform: translateY(100%); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 h-screen flex flex-col text-gray-800">
+
+    <!-- App Header -->
+    <header class="bg-indigo-600 text-white shadow-md z-20 relative">
+        <div class="px-4 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold flex items-center gap-2">
+                <i class="fa-solid fa-graduation-cap"></i> স্মার্ট এটেন্ডেন্স
+            </h1>
+            <div id="status-indicator" class="text-xs bg-indigo-800 px-2 py-1 rounded-full flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-red-500" id="db-status-dot"></span>
+                <span id="db-status-text">ডেটা নেই</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-hidden relative" id="main-content">
+        
+        <!-- Tab 1: Scanner -->
+        <section id="tab-scanner" class="h-full flex flex-col bg-white overflow-hidden relative">
+            <div class="flex-1 relative bg-black flex justify-center items-center">
+                <div id="reader" class="w-full h-full"></div>
+                <!-- Scanner UI Overlay -->
+                <div class="absolute inset-0 pointer-events-none border-[40px] border-black/50 z-10 flex flex-col justify-between">
+                    <div class="scan-line"></div>
+                    <div class="absolute inset-0 border-2 border-indigo-500/50 m-4 rounded-lg"></div>
+                </div>
+                <div class="absolute bottom-6 left-0 right-0 text-center z-20 pointer-events-none">
+                    <p class="text-white bg-black/60 inline-block px-4 py-2 rounded-full text-sm backdrop-blur-sm">
+                        QR কোড ফ্রেমের ভেতর রাখুন
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Result Toast (Hidden by default) -->
+            <div id="scan-result-toast" class="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] p-5 transform translate-y-full z-30 transition-transform hidden">
+                <div class="flex items-center gap-4">
+                    <img id="scanned-img" src="" alt="Student" class="w-16 h-16 rounded-full object-cover border-2 border-indigo-100 bg-gray-100" onerror="this.src='https://ui-avatars.com/api/?name=Student&background=random'">
+                    <div class="flex-1">
+                        <div class="flex justify-between items-start">
+                            <h3 id="scanned-name" class="font-bold text-lg text-gray-800">নাম</h3>
+                            <span id="scanned-status" class="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded">উপস্থিত</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">
+                            আইডি: <span id="scanned-id" class="font-semibold text-gray-700">---</span> | 
+                            শ্রেণী: <span id="scanned-class" class="font-semibold text-gray-700">---</span>
+                        </p>
+                        <p class="text-xs text-gray-400 mt-1"><i class="fa-regular fa-clock"></i> <span id="scanned-time">---</span></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 2: Attendance List -->
+        <section id="tab-list" class="h-full bg-gray-50 flex flex-col hidden">
+            <div class="p-4 bg-white border-b sticky top-0 z-10 flex justify-between items-center shadow-sm">
+                <div>
+                    <h2 class="font-bold text-lg">আজকের উপস্থিতি</h2>
+                    <p class="text-xs text-gray-500" id="current-date-text">---</p>
+                </div>
+                <button onclick="exportAttendance()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm font-medium transition flex items-center gap-2">
+                    <i class="fa-solid fa-file-csv"></i> ডাউনলোড
+                </button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4" id="attendance-list-container">
+                <!-- List items will be injected here -->
+                <div class="text-center text-gray-400 mt-10">
+                    <i class="fa-solid fa-clipboard-list text-4xl mb-3"></i>
+                    <p>আজকের কোনো উপস্থিতি রেকর্ড নেই</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 3: Settings & Data -->
+        <section id="tab-settings" class="h-full bg-gray-50 overflow-y-auto hidden">
+            <div class="p-4">
+                <h2 class="font-bold text-xl mb-4 text-gray-800">ডেটাবেস সেটআপ</h2>
+                
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 mb-6">
+                    <div class="flex items-center gap-3 mb-3 text-indigo-600">
+                        <i class="fa-solid fa-database text-xl"></i>
+                        <h3 class="font-semibold text-lg">স্টুডেন্ট ডেটা ইমপোর্ট</h3>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">আপনার `Student_Data_*.csv` ফাইলটি এখানে আপলোড করুন। এটি লোকাল স্টোরেজে সেভ হবে।</p>
+                    
+                    <label class="block w-full border-2 border-dashed border-indigo-300 bg-indigo-50 hover:bg-indigo-100 transition rounded-xl p-6 text-center cursor-pointer">
+                        <i class="fa-solid fa-cloud-arrow-up text-3xl text-indigo-400 mb-2"></i>
+                        <span class="block text-sm font-medium text-indigo-800">ফাইল নির্বাচন করুন (.csv)</span>
+                        <input type="file" id="csv-file-input" accept=".csv" class="hidden" onchange="handleCSVUpload(event)">
+                    </label>
+                    <div id="upload-status" class="mt-3 text-sm text-center font-medium hidden"></div>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                    <h3 class="font-semibold text-lg text-red-600 mb-3"><i class="fa-solid fa-triangle-exclamation"></i> ডেঞ্জার জোন</h3>
+                    <button onclick="clearAllData()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 py-2.5 rounded-lg text-sm font-bold transition flex justify-center items-center gap-2">
+                        <i class="fa-solid fa-trash-can"></i> সমস্ত ডেটা মুছে ফেলুন
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bg-white border-t border-gray-200 pb-safe z-20">
+        <div class="flex justify-around items-center h-16">
+            <button onclick="switchTab('scanner')" id="nav-scanner" class="flex-1 flex flex-col items-center justify-center gap-1 text-indigo-600 transition">
+                <i class="fa-solid fa-qrcode text-xl"></i>
+                <span class="text-[10px] font-bold">স্ক্যানার</span>
+            </button>
+            <button onclick="switchTab('list')" id="nav-list" class="flex-1 flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-indigo-600 transition">
+                <i class="fa-solid fa-list-check text-xl"></i>
+                <span class="text-[10px] font-bold">লিস্ট</span>
+            </button>
+            <button onclick="switchTab('settings')" id="nav-settings" class="flex-1 flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-indigo-600 transition">
+                <i class="fa-solid fa-database text-xl"></i>
+                <span class="text-[10px] font-bold">ডেটাবেস</span>
+            </button>
+        </div>
+    </nav>
+
+    <script>
+        // --- Global Variables ---
+        let html5QrcodeScanner = null;
+        let isScanning = false;
+        let studentsDB = {}; // Loaded from localStorage
+        let attendanceDB = {}; // Format: { "YYYY-MM-DD": [ {id, time, name...} ] }
+        let currentToastTimeout = null;
+        
+        const TODAY = new Date().toISOString().split('T')[0];
+
+        // --- Audio Context for Super Fast Beep Sound ---
+        function playBeep(type = 'success') {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return; // Fallback for unsupported browsers
+                
+                const ctx = new AudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                
+                if (type === 'success') {
+                    osc.frequency.setValueAtTime(800, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.1);
+                    osc.type = 'sine';
+                    gain.gain.setValueAtTime(0, ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+                    osc.start(ctx.currentTime);
+                    osc.stop(ctx.currentTime + 0.2);
+                } else if (type === 'error') {
+                    osc.frequency.setValueAtTime(300, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.2);
+                    osc.type = 'sawtooth';
+                    gain.gain.setValueAtTime(0, ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                    osc.start(ctx.currentTime);
+                    osc.stop(ctx.currentTime + 0.3);
+                } else if (type === 'warning') {
+                    // Double beep
+                    osc.frequency.setValueAtTime(500, ctx.currentTime);
+                    osc.type = 'square';
+                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                    gain.gain.setValueAtTime(0, ctx.currentTime + 0.1);
+                    gain.gain.setValueAtTime(0.1, ctx.currentTime + 0.15);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+                    osc.start(ctx.currentTime);
+                    osc.stop(ctx.currentTime + 0.25);
+                }
+            } catch (e) {
+                console.error("Audio block error:", e);
+            }
+        }
+
+        // --- Initialization ---
+        window.onload = () => {
+            loadDataFromStorage();
+            updateStatusIndicator();
+            document.getElementById('current-date-text').innerText = new Date().toLocaleDateString('bn-BD', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            
+            // Check if DB is empty, redirect to settings
+            if (Object.keys(studentsDB).length === 0) {
+                switchTab('settings');
+            } else {
+                switchTab('scanner');
+            }
+        };
+
+        function loadDataFromStorage() {
+            const storedStudents = localStorage.getItem('app_students_db');
+            if (storedStudents) studentsDB = JSON.parse(storedStudents);
+
+            const storedAttendance = localStorage.getItem('app_attendance_db');
+            if (storedAttendance) attendanceDB = JSON.parse(storedAttendance);
+            
+            // Initialize today's array if not exists
+            if (!attendanceDB[TODAY]) attendanceDB[TODAY] = [];
+        }
+
+        function updateStatusIndicator() {
+            const count = Object.keys(studentsDB).length;
+            const dot = document.getElementById('db-status-dot');
+            const text = document.getElementById('db-status-text');
+            
+            if (count > 0) {
+                dot.className = "w-2 h-2 rounded-full bg-green-500";
+                text.innerText = `${count} স্টুডেন্ট`;
+            } else {
+                dot.className = "w-2 h-2 rounded-full bg-red-500";
+                text.innerText = "ডেটা নেই";
+            }
+        }
+
+        // --- Tab Navigation ---
+        function switchTab(tabId) {
+            // Update UI
+            ['scanner', 'list', 'settings'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                const navBtn = document.getElementById(`nav-${t}`);
+                navBtn.classList.remove('text-indigo-600');
+                navBtn.classList.add('text-gray-400');
+            });
+            
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const activeNavBtn = document.getElementById(`nav-${tabId}`);
+            activeNavBtn.classList.remove('text-gray-400');
+            activeNavBtn.classList.add('text-indigo-600');
+
+            // Handle Scanner State
+            if (tabId === 'scanner') {
+                if(Object.keys(studentsDB).length === 0) {
+                    alert("দয়া করে আগে ডেটাবেস সেকশন থেকে CSV ফাইল আপলোড করুন।");
+                    switchTab('settings');
+                    return;
+                }
+                startScanner();
+            } else {
+                stopScanner();
+                if (tabId === 'list') renderAttendanceList();
+            }
+        }
+
+        // --- CSV Upload Handling ---
+        function handleCSVUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const statusEl = document.getElementById('upload-status');
+            statusEl.classList.remove('hidden', 'text-red-600', 'text-green-600');
+            statusEl.classList.add('text-indigo-600');
+            statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ডেটা প্রসেস হচ্ছে...';
+
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    let parsedCount = 0;
+                    studentsDB = {}; // Reset DB
+
+                    results.data.forEach(row => {
+                        // Using precise column names from your provided CSV snippet
+                        if (row['ID'] && row['Name (Bn)']) {
+                            studentsDB[row['ID'].trim()] = {
+                                nameBn: row['Name (Bn)'],
+                                nameEn: row['Name (En)'],
+                                classBn: row['Class (Bn)'],
+                                roll: row['Roll'],
+                                phone: row['Mobile'],
+                                imageUrl: row['Image URL'] || ''
+                            };
+                            parsedCount++;
+                        }
+                    });
+
+                    if (parsedCount > 0) {
+                        localStorage.setItem('app_students_db', JSON.stringify(studentsDB));
+                        statusEl.classList.remove('text-indigo-600');
+                        statusEl.classList.add('text-green-600');
+                        statusEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> সফলভাবে ${parsedCount} জন শিক্ষার্থীর ডেটা সেভ হয়েছে!`;
+                        updateStatusIndicator();
+                        
+                        // Give slight delay then auto switch to scanner
+                        setTimeout(() => switchTab('scanner'), 1500);
+                    } else {
+                        statusEl.classList.remove('text-indigo-600');
+                        statusEl.classList.add('text-red-600');
+                        statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> ভুল ফরম্যাট! সঠিক CSV ফাইল নির্বাচন করুন।`;
+                    }
+                },
+                error: function(err) {
+                    statusEl.classList.remove('text-indigo-600');
+                    statusEl.classList.add('text-red-600');
+                    statusEl.innerText = "ফাইল পড়তে সমস্যা হয়েছে!";
+                }
+            });
+        }
+
+        // --- Clear Data ---
+        function clearAllData() {
+            if(confirm("আপনি কি নিশ্চিত? সমস্ত স্টুডেন্ট এবং উপস্থিতির ডেটা মুছে যাবে!")) {
+                localStorage.removeItem('app_students_db');
+                localStorage.removeItem('app_attendance_db');
+                studentsDB = {};
+                attendanceDB = {};
+                updateStatusIndicator();
+                alert("সমস্ত ডেটা মুছে ফেলা হয়েছে।");
+            }
+        }
+
+        // --- QR Scanner Logic ---
+        function startScanner() {
+            if (isScanning) return;
+            
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            
+            const config = { fps: 15, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
+
+            html5QrcodeScanner.start(
+                { facingMode: "environment" }, 
+                config, 
+                onScanSuccess,
+                (errorMessage) => { /* Silently ignore continuous scan errors */ }
+            ).then(() => {
+                isScanning = true;
+            }).catch(err => {
+                console.log("Scanner start failed:", err);
+                alert("ক্যামেরা চালু করা যাচ্ছে না। দয়া করে ব্রাউজারের ক্যামেরা পারমিশন চেক করুন।");
+            });
+        }
+
+        function stopScanner() {
+            if (html5QrcodeScanner && isScanning) {
+                html5QrcodeScanner.stop().then(() => {
+                    isScanning = false;
+                }).catch(err => console.log("Stop failed:", err));
+            }
+        }
+
+        // --- Processing Scan Result ---
+        let lastScannedUrl = "";
+        let scanCooldown = false;
+
+        function onScanSuccess(decodedText, decodedResult) {
+            if (scanCooldown) return;
+            
+            // Extract ID from URL (e.g., https://ardm.netlify.app/2026200101 -> 2026200101)
+            let studentId = "";
+            try {
+                if (decodedText.includes('/')) {
+                    const parts = decodedText.split('/');
+                    studentId = parts[parts.length - 1].trim();
+                } else {
+                    studentId = decodedText.trim();
+                }
+            } catch (e) {
+                studentId = decodedText.trim();
+            }
+
+            // Validation
+            if (!studentId || !studentsDB[studentId]) {
+                playBeep('error');
+                showToastError("অপরিচিত QR কোড বা আইডির ডেটা নেই!");
+                tempPauseScanner();
+                return;
+            }
+
+            const studentData = studentsDB[studentId];
+            
+            // Check if already present today
+            const alreadyPresent = attendanceDB[TODAY].find(record => record.id === studentId);
+
+            if (alreadyPresent) {
+                playBeep('warning');
+                showToast(studentData, studentId, "ইতিমধ্যেই উপস্থিত", "bg-yellow-100", "text-yellow-700");
+                tempPauseScanner();
+                return;
+            }
+
+            // Save Attendance
+            playBeep('success');
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
+            attendanceDB[TODAY].unshift({
+                id: studentId,
+                time: timeString,
+                timestamp: now.getTime()
+            });
+            
+            localStorage.setItem('app_attendance_db', JSON.stringify(attendanceDB));
+            
+            // Show Success UI
+            showToast(studentData, studentId, "সফলভাবে উপস্থিত", "bg-green-100", "text-green-700");
+            tempPauseScanner();
+        }
+
+        function tempPauseScanner() {
+            scanCooldown = true;
+            setTimeout(() => { scanCooldown = false; }, 2500); // 2.5 seconds cooldown between scans
+        }
+
+        // --- UI Toast Notifications ---
+        function showToast(data, id, statusText, statusBgClass, statusTextClass) {
+            const toast = document.getElementById('scan-result-toast');
+            
+            // Populate Data
+            document.getElementById('scanned-img').src = data.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.nameEn || 'S')}&background=random`;
+            document.getElementById('scanned-name').innerText = data.nameBn || data.nameEn;
+            document.getElementById('scanned-id').innerText = id;
+            document.getElementById('scanned-class').innerText = data.classBn || '-';
+            
+            const timeText = new Date().toLocaleTimeString('bn-BD', {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('scanned-time').innerText = timeText;
+            
+            const statusBadge = document.getElementById('scanned-status');
+            statusBadge.innerText = statusText;
+            statusBadge.className = `${statusBgClass} ${statusTextClass} text-xs font-bold px-2 py-1 rounded`;
+
+            // Animate
+            toast.classList.remove('hidden', 'toast-leave');
+            toast.classList.add('toast-enter', 'block');
+
+            // Auto hide
+            if (currentToastTimeout) clearTimeout(currentToastTimeout);
+            currentToastTimeout = setTimeout(() => {
+                toast.classList.remove('toast-enter');
+                toast.classList.add('toast-leave');
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                    toast.classList.remove('block', 'toast-leave');
+                }, 400);
+            }, 2500);
+        }
+
+        function showToastError(msg) {
+            const toast = document.getElementById('scan-result-toast');
+            
+            document.getElementById('scanned-img').src = "https://ui-avatars.com/api/?name=X&background=EF4444&color=fff";
+            document.getElementById('scanned-name').innerText = msg;
+            document.getElementById('scanned-id').innerText = '---';
+            document.getElementById('scanned-class').innerText = '---';
+            document.getElementById('scanned-time').innerText = '---';
+            
+            const statusBadge = document.getElementById('scanned-status');
+            statusBadge.innerText = "ব্যর্থ";
+            statusBadge.className = `bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded`;
+
+            toast.classList.remove('hidden', 'toast-leave');
+            toast.classList.add('toast-enter', 'block');
+
+            if (currentToastTimeout) clearTimeout(currentToastTimeout);
+            currentToastTimeout = setTimeout(() => {
+                toast.classList.remove('toast-enter');
+                toast.classList.add('toast-leave');
+                setTimeout(() => toast.classList.add('hidden'), 400);
+            }, 2000);
+        }
+
+        // --- Render Attendance List ---
+        function renderAttendanceList() {
+            const container = document.getElementById('attendance-list-container');
+            const todaysRecords = attendanceDB[TODAY] || [];
+
+            if (todaysRecords.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-400 mt-16">
+                        <i class="fa-solid fa-clipboard-list text-5xl mb-4 opacity-50"></i>
+                        <p class="text-lg">আজকের কোনো উপস্থিতি রেকর্ড নেই</p>
+                        <p class="text-sm mt-2">স্ক্যানার ব্যবহার করে উপস্থিতি গ্রহণ করুন</p>
+                    </div>`;
+                return;
+            }
+
+            let html = `<div class="mb-4 text-sm font-semibold text-gray-600">মোট উপস্থিত: <span class="text-indigo-600">${todaysRecords.length}</span> জন</div>`;
+            
+            todaysRecords.forEach(record => {
+                const student = studentsDB[record.id] || { nameBn: "অজানা", classBn: "-", imageUrl: "" };
+                const img = student.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.nameEn || 'S')}&background=random`;
+                
+                // Convert English time to Bengali numerals manually for UI display
+                const timeBn = record.time.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+
+                html += `
+                <div class="bg-white p-3 rounded-xl mb-3 shadow-sm border border-gray-100 flex items-center gap-4">
+                    <img src="${img}" class="w-12 h-12 rounded-full object-cover border border-gray-200" onerror="this.src='https://ui-avatars.com/api/?name=S&background=random'">
+                    <div class="flex-1">
+                        <h4 class="font-bold text-gray-800 text-sm">${student.nameBn}</h4>
+                        <div class="text-xs text-gray-500 mt-1 flex justify-between">
+                            <span>আইডি: ${record.id}</span>
+                            <span class="font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded"><i class="fa-regular fa-clock"></i> ${timeBn}</span>
+                        </div>
+                    </div>
+                </div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // --- Export CSV ---
+        function exportAttendance() {
+            const todaysRecords = attendanceDB[TODAY] || [];
+            if (todaysRecords.length === 0) {
+                alert("ডাউনলোড করার মতো কোনো ডেটা নেই!");
+                return;
+            }
+
+            let csvContent = "ID,Name (Bn),Name (En),Class,Roll,Time,Date\n";
+            
+            todaysRecords.forEach(record => {
+                const s = studentsDB[record.id] || {};
+                const nameBn = s.nameBn ? s.nameBn.replace(/,/g, " ") : ""; // Prevent CSV comma breaking
+                const nameEn = s.nameEn ? s.nameEn.replace(/,/g, " ") : "";
+                const className = s.classBn ? s.classBn.replace(/,/g, " ") : "";
+                
+                csvContent += `${record.id},${nameBn},${nameEn},${className},${s.roll || ''},${record.time},${TODAY}\n`;
+            });
+
+            // Add BOM for UTF-8 properly rendering Bengali text in Excel
+            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Attendance_${TODAY}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+    </script>
+</body>
+</html>
+
