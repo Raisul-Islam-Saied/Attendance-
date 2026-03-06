@@ -862,14 +862,14 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
         document.getElementById('qs-name').innerText = student.nameBn || student.nameEn;  
         document.getElementById('qs-id').innerText = student.id;  
           
-     /*   const timeText = new Date().toLocaleTimeString('bn-BD', {hour: '2-digit', minute:'2-digit'});  
-        document.getElementById('qs-time').innerText = timeText;  
+     const timeText = new Date().toLocaleTimeString('bn-BD', {hour: '2-digit', minute:'2-digit'});  
+        document.getElementById('qs-time').innerText = '';  
 
         card.style.transform = 'translateY(0)';  
           
-        const statusBadge = card.querySelector('div.bg-green-100');  
+      /*  const statusBadge = card.querySelector('div.bg-green-100');  
         statusBadge.className = 'bg-green-100 text-green-600 px-3 py-1 rounded-lg text-xs font-bold inline-block mb-1';  
-        statusBadge.innerHTML = '<i class="fa-solid fa-check"></i> তথ্য হালনাগাদ';*/  
+        statusBadge.innerHTML = '<i class="fa-solid fa-check"></i> তথ্য হালনাগাদ';*/ 
 
         setTimeout(() => { card.style.transform = 'translateY(150%)'; }, 4000);  
     }  
