@@ -5,6 +5,10 @@
     <meta name="theme-color" content="#4F46E5">  
     <meta name="apple-mobile-web-app-capable" content="yes">  
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">  
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="logo.png">
+   
+    <link rel="apple-touch-icon" href="logo.png">
     <title>স্টুডেন্ট ইনফো ফাইন্ডার</title>  <!-- Tailwind CSS -->  
 <script src="https://cdn.tailwindcss.com"></script>  
   
@@ -1079,7 +1083,39 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
             toast.addEventListener('mouseleave', Swal.resumeTimer)  
         }  
     });  
+if ("serviceWorker" in navigator) {
 
+  navigator.serviceWorker.register("./service-worker.js")
+  .then(reg => {
+
+    // প্রতি load এ update check
+    reg.update();
+
+    // নতুন SW detect
+    reg.onupdatefound = () => {
+
+      const newWorker = reg.installing;
+
+      newWorker.onstatechange = () => {
+
+        if (newWorker.state === "installed") {
+
+          if (navigator.serviceWorker.controller) {
+
+            // auto reload
+            window.location.reload();
+
+          }
+
+        }
+
+      };
+
+    };
+
+  });
+
+        }
 </script>
 
 </body>  
