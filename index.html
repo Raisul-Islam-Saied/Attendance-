@@ -495,8 +495,16 @@
             card.classList.remove('scale-95');
             card.classList.add('scale-100');
         }, 10);
+        history.pushState({ modal: true }, "");
     }
-
+// Modal background click close
+document.getElementById("student-profile-modal").addEventListener("click", function(e) {
+    const card = document.getElementById("profile-card");
+    if (!card.contains(e.target)) {
+        closeStudentProfile();
+    }
+});
+    
     function closeStudentProfile() {
         const modal = document.getElementById('student-profile-modal');
         const card = document.getElementById('profile-card');
@@ -1086,6 +1094,17 @@ const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d])
             toast.addEventListener('mouseleave', Swal.resumeTimer)  
         }  
     });  
+    // Mobile back button close modal
+window.addEventListener("popstate", function(event) {
+
+    const modal = document.getElementById("student-profile-modal");
+
+    if (!modal.classList.contains("hidden")) {
+        closeStudentProfile();
+        history.pushState(null, "");
+    }
+
+});
 if ("serviceWorker" in navigator) {
 
   navigator.serviceWorker.register("./service-worker.js")
