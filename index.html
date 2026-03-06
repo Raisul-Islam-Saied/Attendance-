@@ -506,18 +506,24 @@ document.getElementById("student-profile-modal").addEventListener("click", funct
 });
     
     function closeStudentProfile() {
-        const modal = document.getElementById('student-profile-modal');
-        const card = document.getElementById('profile-card');
-        
-        modal.classList.add('opacity-0');
-        card.classList.remove('scale-100');
-        card.classList.add('scale-95');
-        
-        setTimeout(() => {
-            modal.classList.add('hidden');
-        }, 300); // Matches transition duration
+
+    const modal = document.getElementById('student-profile-modal');
+    const card = document.getElementById('profile-card');
+
+    modal.classList.add('opacity-0');
+    card.classList.remove('scale-100');
+    card.classList.add('scale-95');
+
+    setTimeout(() => {
+        modal.classList.add('hidden');
+    }, 300);
+
+    // back history
+    if (history.state && history.state.modal) {
+        history.back();
     }
 
+}
     /** * ==========================================  
      * DATA FETCHING MODULE (API)  
      * ==========================================  
@@ -1101,7 +1107,7 @@ window.addEventListener("popstate", function(event) {
 
     if (!modal.classList.contains("hidden")) {
         closeStudentProfile();
-        history.pushState(null, "");
+        
     }
 
 });
