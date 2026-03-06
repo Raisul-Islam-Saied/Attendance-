@@ -586,7 +586,7 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
                 syncIcon.classList.add('text-green-500');  
                 updateDBStats();  
                   
-                if(!showLoading) Toast.fire({ icon: 'success', title: 'ডেটাবেস সিঙ্ক হয়েছে!' });  
+                //if(!showLoading) Toast.fire({ icon: 'success', title: 'ডেটাবেস সিঙ্ক হয়েছে!' });  
             } else {  
                 throw new Error("কোনো বৈধ শিক্ষার্থীর তথ্য পাওয়া যায়নি।");  
             }  
