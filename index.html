@@ -5,7 +5,7 @@
     <meta name="theme-color" content="#4F46E5">  
     <meta name="apple-mobile-web-app-capable" content="yes">  
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">  
-    <title>প্রিমিয়াম এটেন্ডেন্স সিস্টেম</title>  <!-- Tailwind CSS -->  
+    <title>স্টুডেন্ট ইনফো ফাইন্ডার</title>  <!-- Tailwind CSS -->  
 <script src="https://cdn.tailwindcss.com"></script>  
   
 <!-- FontAwesome -->  
@@ -87,11 +87,11 @@
     <div class="relative flex justify-center items-center mb-6">  
         <div class="pulse-ring"></div>  
         <div class="w-24 h-24 bg-white rounded-2xl shadow-2xl flex items-center justify-center z-10">  
-            <i class="fa-solid fa-graduation-cap text-5xl text-indigo-600"></i>  
+            <i class="fa-solid fa-user-magnifying-glass text-5xl text-indigo-600"></i>  
         </div>  
     </div>  
-    <h1 class="text-3xl font-bold mb-2 tracking-wide font-sans">স্মার্ট এটেন্ডেন্স</h1>  
-    <p class="text-indigo-200 text-sm mb-8 font-medium">প্রিমিয়াম এডিশন</p>  
+    <h1 class="text-3xl font-bold mb-2 tracking-wide font-sans">স্টুডেন্ট ইনফো</h1>  
+    <p class="text-indigo-200 text-sm mb-8 font-medium">স্মার্ট ফাইন্ডার এডিশন</p>  
       
     <div class="w-48 bg-indigo-800 rounded-full h-1.5 mb-4 overflow-hidden">  
         <div id="splash-progress" class="bg-white h-1.5 rounded-full w-0 transition-all duration-300"></div>  
@@ -140,14 +140,14 @@
             </div>  
 
             <!-- Last Scanned Quick Info Card -->  
-            <div id="quick-scan-info" class="absolute bottom-10 left-4 right-4 glass p-4 rounded-2xl shadow-xl transform translate-y-[150%] transition-transform duration-500 flex items-center gap-4 z-30">  
+            <div id="quick-scan-info" class="absolute bottom-10 left-4 right-4 glass p-4 rounded-2xl shadow-xl transform translate-y-[150%] transition-transform duration-500 flex items-center gap-4 z-30 cursor-pointer hover:bg-slate-50">  
                 <img id="qs-img" src="" class="w-14 h-14 rounded-full border-2 border-white shadow-md object-cover">  
                 <div class="flex-1">  
                     <h3 id="qs-name" class="font-bold text-slate-800 text-lg leading-tight"></h3>  
                     <p class="text-xs text-slate-500">আইডি: <span id="qs-id" class="font-semibold text-slate-700"></span></p>  
                 </div>  
                 <div class="text-right">  
-                    <div class="bg-green-100 text-green-600 px-3 py-1 rounded-lg text-xs font-bold inline-block mb-1"><i class="fa-solid fa-check"></i> উপস্থিত</div>  
+                    <div class="bg-green-100 text-green-600 px-3 py-1 rounded-lg text-xs font-bold inline-block mb-1"><i class="fa-solid fa-check"></i> তথ্য প্রাপ্ত</div>  
                     <p id="qs-time" class="text-[10px] text-slate-400"></p>  
                 </div>  
             </div>  
@@ -160,7 +160,7 @@
         <!-- Hero Stats -->  
         <div class="bg-gradient-to-br from-indigo-600 to-blue-500 rounded-3xl p-6 text-white shadow-xl shadow-indigo-200 mb-6 relative overflow-hidden">  
             <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>  
-            <h2 class="text-indigo-100 text-sm font-medium mb-1">আজকের মোট উপস্থিতি</h2>  
+            <h2 class="text-indigo-100 text-sm font-medium mb-1">আজকের মোট অনুসন্ধান</h2>  
             <div class="flex items-end gap-3 mb-4">  
                 <span class="text-5xl font-bold tracking-tight" id="dash-total">০</span>  
                 <span class="text-indigo-200 text-sm mb-1 pb-1">জন শিক্ষার্থী</span>  
@@ -169,13 +169,13 @@
                 <div id="dash-progress" class="bg-white h-1.5 rounded-full transition-all duration-1000" style="width: 0%"></div>  
             </div>  
             <div class="flex justify-between text-xs text-indigo-100">  
-                <span>লক্ষ্য: <span id="dash-target">০</span></span>  
+                <span>মোট ডাটাবেস: <span id="dash-target">০</span></span>  
                 <span id="dash-percent">০%</span>  
             </div>  
         </div>  
 
         <div class="flex justify-between items-center mb-4">  
-            <h3 class="font-bold text-slate-800 text-lg">সর্বশেষ উপস্থিত</h3>  
+            <h3 class="font-bold text-slate-800 text-lg">সর্বশেষ অনুসন্ধানকৃত</h3>  
             <button onclick="switchTab('history')" class="text-xs text-indigo-600 font-semibold bg-indigo-50 px-3 py-1.5 rounded-full">সব দেখুন</button>  
         </div>  
 
@@ -257,7 +257,7 @@
               
             <div class="space-y-3">  
                 <button onclick="clearAttendance()" class="w-full bg-red-50 text-red-600 border border-red-200 py-3 rounded-xl text-sm font-bold active:bg-red-100 transition flex justify-center items-center gap-2">  
-                    <i class="fa-regular fa-calendar-xmark"></i> আজকের রেকর্ড মুছুন  
+                    <i class="fa-regular fa-calendar-xmark"></i> আজকের হিস্ট্রি মুছুন  
                 </button>  
                 <button onclick="factoryReset()" class="w-full bg-red-600 text-white py-3 rounded-xl text-sm font-bold shadow-md shadow-red-200 active:bg-red-700 transition flex justify-center items-center gap-2">  
                     <i class="fa-solid fa-power-off"></i> ফ্যাক্টরি রিসেট  
@@ -265,7 +265,7 @@
             </div>  
         </div>  
           
-        <p class="text-center text-xs text-slate-400 mt-8">ভার্সন ৩.১.০ • ফাইনাল এপিআই ইন্টিগ্রেটেড</p>  
+        <p class="text-center text-xs text-slate-400 mt-8">ভার্সন ৩.২.০ • ইনফো ফাইন্ডার এডিশন</p>  
     </section>  
 
 </main>  
@@ -282,7 +282,7 @@
             <div class="absolute -top-6 w-14 h-14 bg-indigo-600 text-white rounded-full flex justify-center items-center shadow-lg shadow-indigo-300 border-4 border-white transition-transform active:scale-95">  
                 <i class="fa-solid fa-qrcode text-2xl"></i>  
             </div>  
-            <span class="text-[10px] font-bold mt-8">স্ক্যানার</span>  
+            <span class="text-[10px] font-bold mt-8">খুঁজুন</span>  
         </button>  
           
         <button onclick="switchTab('history')" id="nav-history" class="nav-item flex-1 flex flex-col items-center justify-center gap-1 text-slate-400">  
@@ -292,10 +292,53 @@
     </div>  
 </nav>  
 
+<!-- Student Profile Modal (New Feature) -->
+<div id="student-profile-modal" class="fixed inset-0 z-[99999] hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-0 duration-300">
+    <div class="bg-white rounded-[24px] w-full max-w-sm overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300" id="profile-card">
+        <!-- Cover Image area -->
+        <div class="h-28 bg-gradient-to-r from-indigo-500 to-blue-600 relative">
+            <button onclick="closeStudentProfile()" class="absolute top-4 right-4 text-white bg-black/20 rounded-full w-8 h-8 flex items-center justify-center backdrop-blur-md active:scale-90 transition-transform"><i class="fa-solid fa-xmark"></i></button>
+            <div class="absolute inset-0 bg-white/10 pattern-dots"></div>
+        </div>
+        <!-- Profile Image -->
+        <div class="flex justify-center -mt-14 relative z-10">
+            <img id="modal-img" src="" class="w-28 h-28 rounded-full border-4 border-white object-cover shadow-lg bg-white">
+        </div>
+        <!-- Details -->
+        <div class="p-6 text-center pt-3">
+            <h2 id="modal-name-bn" class="text-2xl font-bold text-slate-800 leading-tight"></h2>
+            <p id="modal-name-en" class="text-sm text-slate-500 mb-5 font-medium"></p>
+            
+            <div class="grid grid-cols-2 gap-3 text-left">
+                <div class="bg-indigo-50/50 p-3.5 rounded-2xl border border-indigo-100 flex flex-col justify-center">
+                    <span class="text-[10px] text-indigo-400 font-bold uppercase mb-0.5"><i class="fa-regular fa-id-card mr-1"></i> আইডি (ID)</span>
+                    <p id="modal-id" class="font-bold text-slate-700 text-lg leading-none"></p>
+                </div>
+                <div class="bg-blue-50/50 p-3.5 rounded-2xl border border-blue-100 flex flex-col justify-center">
+                    <span class="text-[10px] text-blue-400 font-bold uppercase mb-0.5"><i class="fa-solid fa-hashtag mr-1"></i> রোল (Roll)</span>
+                    <p id="modal-roll" class="font-bold text-slate-700 text-lg leading-none"></p>
+                </div>
+                <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 col-span-2 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 font-bold uppercase block mb-0.5">শ্রেণী (Class)</span>
+                        <p id="modal-class" class="font-bold text-slate-800 text-md leading-none"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="closeStudentProfile()" class="w-full mt-6 bg-slate-900 text-white py-3 rounded-xl font-bold shadow-md active:scale-95 transition-transform">
+                বন্ধ করুন
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- JavaScript Application Logic -->  
 <script>  
-    /**  
-     * ==========================================  
+    /** * ==========================================  
      * CORE APPLICATION STATE & CONFIGURATION  
      * ==========================================  
      */  
@@ -304,7 +347,7 @@
       
     let state = {  
         students: {},          
-        attendance: {},        
+        attendance: {}, // Using same variable name for search history to prevent breaking        
         currentTab: 'dashboard',  
         scanner: null,  
         isScanning: false,  
@@ -313,8 +356,7 @@
 
     const e2b = (num) => String(num).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);  
 
-    /**  
-     * ==========================================  
+    /** * ==========================================  
      * INITIALIZATION & LIFECYCLE  
      * ==========================================  
      */  
@@ -364,8 +406,52 @@
         setTimeout(() => { splash.style.visibility = 'hidden'; }, 600);  
     }  
 
-    /**  
+    /** * ==========================================  
+     * STUDENT PROFILE MODAL (NEW FEATURE)
      * ==========================================  
+     */ 
+    function openStudentProfile(studentId) {
+        const student = state.students[studentId];
+        if(!student) return;
+
+        // Set Data
+        const defaultImg = `https://ui-avatars.com/api/?name=${encodeURIComponent(student.nameEn || 'S')}&background=4F46E5&color=fff&bold=true&size=200`;
+        document.getElementById('modal-img').src = student.image || defaultImg;
+        document.getElementById('modal-img').onerror = function() { this.src = defaultImg; };
+        
+        document.getElementById('modal-name-bn').innerText = student.nameBn || '-';
+        document.getElementById('modal-name-en').innerText = student.nameEn || '';
+        document.getElementById('modal-id').innerText = student.id || '-';
+        document.getElementById('modal-roll').innerText = student.roll || '-';
+        document.getElementById('modal-class').innerText = student.classBn || '-';
+
+        // Show Modal with Animation
+        const modal = document.getElementById('student-profile-modal');
+        const card = document.getElementById('profile-card');
+        
+        modal.classList.remove('hidden');
+        // Small delay to allow display:block to apply before animating opacity/transform
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            card.classList.remove('scale-95');
+            card.classList.add('scale-100');
+        }, 10);
+    }
+
+    function closeStudentProfile() {
+        const modal = document.getElementById('student-profile-modal');
+        const card = document.getElementById('profile-card');
+        
+        modal.classList.add('opacity-0');
+        card.classList.remove('scale-100');
+        card.classList.add('scale-95');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300); // Matches transition duration
+    }
+
+    /** * ==========================================  
      * DATA FETCHING MODULE (API)  
      * - Mapped exactly to Google Apps Script Headers  
      * ==========================================  
@@ -467,8 +553,7 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
         btn.disabled = false;  
     }  
 
-    /**  
-     * ==========================================  
+    /** * ==========================================  
      * CSV FALLBACK MODULE (Offline Import)  
      * ==========================================  
      */  
@@ -537,8 +622,7 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
         updateDashboardUI();  
     }  
 
-    /**  
-     * ==========================================  
+    /** * ==========================================  
      * TAB NAVIGATION & ROUTING  
      * ==========================================  
      */  
@@ -583,12 +667,11 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
             if (tabId === 'history') renderHistoryUI();  
         }  
           
-        const titles = { 'dashboard': 'ড্যাশবোর্ড', 'history': 'উপস্থিতি হিস্ট্রি', 'settings': 'সেটিংস' };  
+        const titles = { 'dashboard': 'ড্যাশবোর্ড', 'history': 'অনুসন্ধান হিস্ট্রি', 'settings': 'সেটিংস' };  
         if (titles[tabId]) document.querySelector('header h1').innerText = titles[tabId];  
     }  
 
-    /**  
-     * ==========================================  
+    /** * ==========================================  
      * SCANNER MODULE (QR Processing)  
      * ==========================================  
      */  
@@ -638,7 +721,7 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
 
         const alreadyPresent = state.attendance[TODAY].find(r => r.id === studentId);  
         if (alreadyPresent) {  
-            handleScanResult('warning', 'ইতিমধ্যেই উপস্থিত হিসেবে রেকর্ড করা হয়েছে!', student);  
+            handleScanResult('warning', 'ইতিমধ্যেই আজ অনুসন্ধান করা হয়েছে!', student);  
             return;  
         }  
 
@@ -652,7 +735,7 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
         state.attendance[TODAY].unshift(record);  
         saveAttendanceData();  
           
-        handleScanResult('success', 'সফলভাবে রেকর্ড করা হয়েছে', student);  
+        handleScanResult('success', 'সফলভাবে তথ্য পাওয়া গেছে', student);  
     }  
 
     function handleScanResult(type, message, studentData) {  
@@ -708,6 +791,9 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
 
     function showQuickScanInfo(student, type) {  
         const card = document.getElementById('quick-scan-info');  
+        // Add onclick to open profile
+        card.setAttribute('onclick', `openStudentProfile('${student.id}')`);
+
         const defaultImg = `https://ui-avatars.com/api/?name=${encodeURIComponent(student.nameEn || 'S')}&background=4F46E5&color=fff&bold=true`;  
           
         document.getElementById('qs-img').src = student.image || defaultImg;  
@@ -724,17 +810,16 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
         const statusBadge = card.querySelector('div.bg-green-100') || card.querySelector('div.bg-yellow-100');  
         if (type === 'success') {  
             statusBadge.className = 'bg-green-100 text-green-600 px-3 py-1 rounded-lg text-xs font-bold inline-block mb-1';  
-            statusBadge.innerHTML = '<i class="fa-solid fa-check"></i> উপস্থিত';  
+            statusBadge.innerHTML = '<i class="fa-solid fa-check"></i> তথ্য প্রাপ্ত';  
         } else {  
             statusBadge.className = 'bg-yellow-100 text-yellow-700 px-3 py-1 rounded-lg text-xs font-bold inline-block mb-1';  
             statusBadge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ডুপ্লিকেট';  
         }  
 
-        setTimeout(() => { card.style.transform = 'translateY(150%)'; }, 3000);  
+        setTimeout(() => { card.style.transform = 'translateY(150%)'; }, 4000);  
     }  
 
-    /**  
-     * ==========================================  
+    /** * ==========================================  
      * UI RENDERERS (Dashboard & History)  
      * ==========================================  
      */  
@@ -756,9 +841,9 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
             listContainer.innerHTML = `  
                 <div class="bg-white rounded-2xl p-6 text-center shadow-sm border border-slate-100">  
                     <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">  
-                        <i class="fa-regular fa-clock text-2xl text-slate-300"></i>  
+                        <i class="fa-solid fa-user-magnifying-glass text-2xl text-slate-300"></i>  
                     </div>  
-                    <p class="text-slate-500 font-medium">আজকের স্ক্যান শুরু করুন</p>  
+                    <p class="text-slate-500 font-medium">আজকের অনুসন্ধান শুরু করুন</p>  
                 </div>`;  
             return;  
         }  
@@ -769,7 +854,7 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
             const timeBn = record.timeStr.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);  
 
             listContainer.innerHTML += `  
-                <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-50 flex items-center gap-4 transition hover:shadow-md">  
+                <div onclick="openStudentProfile('${record.id}')" class="bg-white p-3 rounded-2xl shadow-sm border border-slate-50 flex items-center gap-4 transition hover:shadow-md cursor-pointer hover:bg-slate-50 active:scale-[0.98]">  
                     <img src="${img}" class="w-12 h-12 rounded-full object-cover border border-slate-100" onerror="this.src='https://ui-avatars.com/api/?name=S&background=f8fafc'">  
                     <div class="flex-1 min-w-0">  
                         <h4 class="font-bold text-slate-800 text-sm truncate">${s.nameBn}</h4>  
@@ -813,7 +898,7 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
             const timeBn = record.timeStr.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);  
 
             html += `  
-                <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 fade-in">  
+                <div onclick="openStudentProfile('${record.id}')" class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 fade-in cursor-pointer hover:bg-slate-50 active:scale-[0.98] transition-all">  
                     <img src="${img}" class="w-12 h-12 rounded-full object-cover border-2 border-indigo-50" onerror="this.src='https://ui-avatars.com/api/?name=S&background=random'">  
                     <div class="flex-1 min-w-0">  
                         <h4 class="font-bold text-slate-800 text-sm truncate">${s.nameBn}</h4>  
@@ -836,8 +921,7 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
         renderHistoryUI(term);  
     }  
 
-    /**  
-     * ==========================================  
+    /** * ==========================================  
      * EXPORT & DATA MANAGEMENT  
      * ==========================================  
      */  
@@ -863,7 +947,7 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
         const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });  
         const link = document.createElement("a");  
         link.href = URL.createObjectURL(blob);  
-        link.download = `Attendance_${TODAY}.csv`;  
+        link.download = `Search_History_${TODAY}.csv`;  
         link.click();  
           
         Toast.fire({ icon: 'success', title: 'ফাইল ডাউনলোড হয়েছে' });  
@@ -872,7 +956,7 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
     function clearAttendance() {  
         Swal.fire({  
             title: 'আপনি কি নিশ্চিত?',  
-            text: "আজকের সমস্ত উপস্থিতির রেকর্ড মুছে যাবে!",  
+            text: "আজকের সমস্ত অনুসন্ধানের রেকর্ড মুছে যাবে!",  
             icon: 'warning',  
             showCancelButton: true,  
             confirmButtonColor: '#d33',  
@@ -891,7 +975,7 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
     function factoryReset() {  
         Swal.fire({  
             title: 'ফ্যাক্টরি রিসেট!',  
-            text: "সমস্ত স্টুডেন্ট ডেটা এবং উপস্থিতির রেকর্ড স্থায়ীভাবে মুছে যাবে।",  
+            text: "সমস্ত স্টুডেন্ট ডেটা এবং অনুসন্ধানের রেকর্ড স্থায়ীভাবে মুছে যাবে।",  
             icon: 'error',  
             showCancelButton: true,  
             confirmButtonColor: '#d33',  
@@ -922,3 +1006,4 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
 
 </body>  
 </html>
+
