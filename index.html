@@ -906,7 +906,8 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
         totalHistoryData.slice(0, 5).forEach(record => {  
             const s = state.students[record.id] || { nameBn: 'অজানা', classBn: '-' };  
             const img = s.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.nameEn || 'S')}&background=f8fafc&color=475569`;  
-            const timeOnly = record.timeStr.split(':').slice(0,2).join(':');
+            const parts = record.timeStr.split(':');
+const timeOnly = parts[0] + ':' + parts[1] + ' ' + record.timeStr.split(' ')[1];
 const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
             listContainer.innerHTML += `  
                 <div onclick="openStudentProfile('${record.id}')" class="bg-white p-3 rounded-2xl shadow-sm border border-slate-50 flex items-center gap-4 transition hover:shadow-md cursor-pointer hover:bg-slate-50 active:scale-[0.98]">  
@@ -974,7 +975,9 @@ const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d])
         filteredData.forEach(record => {  
             const s = state.students[record.id] || { nameBn: 'অজানা', classBn: '-' };  
             const img = s.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.nameEn || 'S')}&background=random`;  
-            const timeBn = record.timeStr.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);  
+            const parts = record.timeStr.split(':');
+const timeOnly = parts[0] + ':' + parts[1] + ' ' + record.timeStr.split(' ')[1];
+const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
             const dateBn = record.dateStr.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
 
             html += `  
