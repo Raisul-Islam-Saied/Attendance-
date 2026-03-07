@@ -847,7 +847,7 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
                 osc.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime + 0.1);  
                 osc.type = 'sine';  
                 gain.gain.setValueAtTime(0, ctx.currentTime);  
-                gain.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.02);  
+                gain.gain.linearRampToValueAtTime(1.0, ctx.currentTime + 0.02);  
                 gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);  
                 osc.start(ctx.currentTime);  
                 osc.stop(ctx.currentTime + 0.15);  
