@@ -831,7 +831,7 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
 
         setTimeout(() => { state.scanCooldown = false; }, type === 'success' ? 1500 : 2500);  
     }  
-
+/*
     function playBeep(type) {  
         try {  
             const AudioContext = window.AudioContext || window.webkitAudioContext;  
@@ -863,7 +863,60 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
             }  
         } catch (e) {}  
     }  
+*/
+    function playBeep(type) {
 
+    try {
+
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        // SUCCESS SCAN SOUND (Scanner Beep)
+        if (type === 'success') {
+
+            osc.type = "square"; // sharp scanner sound
+
+            // high frequency beep
+            osc.frequency.setValueAtTime(2800, ctx.currentTime);
+
+            gain.gain.setValueAtTime(0, ctx.currentTime);
+            gain.gain.linearRampToValueAtTime(1.0, ctx.currentTime + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.12);
+
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.12);
+
+        }
+
+        // ERROR SOUND
+        else if (type === 'error') {
+
+            osc.type = "sawtooth";
+
+            osc.frequency.setValueAtTime(400, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.3);
+
+            gain.gain.setValueAtTime(0, ctx.currentTime);
+            gain.gain.linearRampToValueAtTime(1.0, ctx.currentTime + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.35);
+
+        }
+
+    } catch (e) {
+        console.log("Audio error", e);
+    }
+
+}
     function showQuickScanInfo(student, type) {  
         const card = document.getElementById('quick-scan-info');  
         card.setAttribute('onclick', `openStudentProfile('${student.id}')`);
