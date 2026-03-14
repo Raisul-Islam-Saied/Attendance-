@@ -197,26 +197,38 @@
                 <input type="text" id="search-input" oninput="filterHistory()" placeholder="নাম বা আইডি দিয়ে খুঁজুন..." class="w-full bg-slate-100 text-slate-700 text-sm rounded-xl py-3 pl-10 pr-4 border border-transparent focus:border-indigo-300 focus:bg-white transition-all">  
             </div>  
         </div>  
-                  <div class="p-4 flex flex-wrap justify-between items-center gap-y-3 bg-white shadow-sm z-10">  
-            <span class="text-sm font-bold text-slate-600">মোট রেকর্ড: <span id="history-count" class="text-indigo-600">0</span></span>  
+                          <div class="p-3 flex justify-between items-center bg-white shadow-sm z-10 border-b border-slate-100">  
+            <div class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg border border-indigo-100 flex items-center gap-1.5">
+                <i class="fa-solid fa-users text-[10px]"></i>
+                <span class="text-xs font-bold">মোট: <span id="history-count">০</span></span>  
+            </div>
             
-            <div class="flex items-center gap-2">
-                <select id="sort-history" onchange="filterHistory()" class="bg-slate-800 text-white px-3 py-2 rounded-lg text-xs font-bold shadow-md active:scale-95 transition outline-none cursor-pointer">
-                    <option value="time_desc" class="bg-white text-slate-800">নতুন (New)</option>
-                    <option value="time_asc" class="bg-white text-slate-800">পুরনো (Old)</option>
-                    <option value="name_asc" class="bg-white text-slate-800">নাম (A-Z)</option>
-                    <option value="class_asc" class="bg-white text-slate-800">শ্রেণী</option>
-                </select>
+            <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 shadow-inner">
                 
-                <button onclick="copyAllIds()" class="bg-slate-800 text-white px-3 py-2 rounded-lg text-xs font-bold shadow-md active:scale-95 transition flex items-center justify-center" title="লিস্টের সব আইডি কপি করুন">  
+                <div class="relative">
+                    <select id="sort-history" onchange="filterHistory()" class="appearance-none bg-transparent text-slate-600 pl-3 pr-6 py-1.5 rounded-lg text-xs font-bold cursor-pointer outline-none focus:bg-white focus:text-indigo-600 focus:shadow-sm transition-all">
+                        <option value="time_desc">নতুন</option>
+                        <option value="time_asc">পুরনো</option>
+                        <option value="name_asc">নাম</option>
+                        <option value="class_asc">শ্রেণী</option>
+                    </select>
+                    <i class="fa-solid fa-sort absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
+                </div>
+                
+                <div class="w-[1px] h-4 bg-slate-300 mx-0.5"></div>
+
+                <button onclick="copyAllIds()" class="text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-white active:bg-white hover:text-indigo-600 active:text-indigo-600 hover:shadow-sm active:shadow-sm transition-all flex items-center justify-center" title="সব আইডি কপি করুন">  
                     <i class="fa-solid fa-copy text-sm"></i>  
                 </button>
 
-                <button onclick="exportData()" class="bg-slate-800 text-white px-3 py-2 rounded-lg text-xs font-bold shadow-md active:scale-95 transition flex items-center gap-1.5">  
-                    <i class="fa-solid fa-file-export"></i> এক্সপোর্ট  
+                <div class="w-[1px] h-4 bg-slate-300 mx-0.5"></div>
+
+                <button onclick="exportData()" class="text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-white active:bg-white hover:text-indigo-600 active:text-indigo-600 hover:shadow-sm active:shadow-sm transition-all flex items-center gap-1.5">  
+                    <i class="fa-solid fa-file-export text-sm"></i> <span class="hidden sm:inline">এক্সপোর্ট</span>
                 </button>  
+                
             </div>
-        </div>  
+        </div> 
 
         <div id="full-history-list" class="flex-1 overflow-y-auto p-4 space-y-3 pb-24 custom-scrollbar">  
             <!-- List items -->  
