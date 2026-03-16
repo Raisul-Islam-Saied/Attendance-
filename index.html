@@ -23,6 +23,7 @@
   
 <!-- HTML5 QR Code Scanner -->  
 <script src="https://unpkg.com/html5-qrcode"></script>  
+<script src="https://unpkg.com/lucide@latest"></script>
 
 <!-- SweetAlert2 for Premium Popups -->  
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>  
@@ -181,9 +182,7 @@
 
     <!-- View 2: Dashboard/Stats -->  
     <section id="view-dashboard" class="absolute inset-0 overflow-y-auto p-5 pb-24 opacity-0 pointer-events-none transition-opacity duration-300 custom-scrollbar">  
-          
-        <!-- Hero Stats -->  
-        <div class="bg-gradient-to-br from-indigo-600 to-blue-500 rounded-3xl p-6 text-white shadow-xl shadow-indigo-200 mb-6 relative overflow-hidden">  
+            <div class="bg-gradient-to-br from-indigo-600 to-blue-500 rounded-3xl p-6 text-white shadow-xl shadow-indigo-200 mb-6 relative overflow-hidden">  
             <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>  
             <h2 class="text-indigo-100 text-sm font-medium mb-1">সর্বমোট অনুসন্ধান</h2>  
             <div class="flex items-end gap-3 mb-4">  
@@ -199,16 +198,33 @@
             </div>  
         </div>  
 
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 mb-6 relative overflow-hidden">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-bold text-slate-800"><i class="fa-solid fa-users-viewfinder text-indigo-500 mr-2"></i>অ্যাডভান্সড ডাটা ফাইন্ডার</h3>
+                <span class="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg font-bold border border-indigo-100">স্ক্যান ছাড়া খুঁজুন</span>
+            </div>
+            <p class="text-xs text-slate-500 mb-4">যেকোনো শর্ত দিয়ে ফিল্টার করে একসাথে নির্দিষ্ট শিক্ষার্থীদের প্রোফাইল বের করুন।</p>
+            
+            <div class="flex gap-3">
+                <button onclick="openFilterModal()" class="flex-1 bg-slate-50 text-slate-700 border border-slate-200 font-bold py-2.5 rounded-xl flex justify-center items-center gap-2 shadow-sm hover:bg-slate-100 active:scale-95 transition-all text-sm">
+                    <i class="fa-solid fa-filter text-slate-400"></i> ফিল্টার সেট
+                </button>
+                <button onclick="loadManualData()" class="flex-1 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold py-2.5 rounded-xl flex justify-center items-center gap-2 shadow-md shadow-indigo-200 hover:shadow-lg active:scale-95 transition-all text-sm">
+                    <i class="fa-solid fa-bolt text-yellow-300"></i> ডাটা লোড
+                </button>
+            </div>
+            
+            <div id="manual-data-list" class="mt-4 space-y-2 empty:hidden max-h-[300px] overflow-y-auto custom-scrollbar pr-1 border-t border-slate-100 pt-3"></div>
+        </div>
+
         <div class="flex justify-between items-center mb-4">  
             <h3 class="font-bold text-slate-800 text-lg">সর্বশেষ অনুসন্ধানকৃত</h3>  
             <button onclick="switchTab('history')" class="text-xs text-indigo-600 font-semibold bg-indigo-50 px-3 py-1.5 rounded-full">সব দেখুন</button>  
         </div>  
 
-        <!-- Recent Scans List -->  
         <div id="dash-recent-list" class="space-y-3">  
-            <!-- Dynamically populated -->  
-        </div>  
-    </section>  
+            </div>  
+    </section>
 
     <!-- View 3: Full History -->  
     <section id="view-history" class="absolute inset-0 flex flex-col bg-slate-50 opacity-0 pointer-events-none transition-opacity duration-300">  
@@ -345,6 +361,30 @@
     </div>  
 </nav>  
 </div>
+    <div id="filter-modal" class="fixed inset-0 bg-black bg-opacity-50 z-[100000] flex justify-center items-center hidden">
+    <div class="bg-white w-11/12 max-w-lg rounded-xl overflow-hidden flex flex-col max-h-[90vh] shadow-2xl transform scale-95 transition-transform" id="filter-modal-card">
+        <div class="bg-[#005A34] text-white p-3 flex justify-between items-center">
+            <h3 class="font-bold flex items-center gap-2 text-sm"><i data-lucide="filter" class="w-4 h-4"></i> অ্যাডভান্সড ফিল্টারিং রুলস</h3>
+            <button onclick="closeFilterModal()" class="text-white hover:text-gray-200 transition-colors">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <div id="filter-rules-container" class="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-3 custom-scrollbar"></div>
+        <div class="px-4 py-2 bg-gray-50 border-t flex justify-between items-center">
+            <button onclick="addFilterRule()" class="text-[#005A34] font-bold text-sm flex items-center gap-1 hover:text-[#1e40af] transition-colors">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i> নতুন রুল যোগ করুন
+            </button>
+            <span class="text-[11px] font-bold text-gray-500 bg-gray-200 px-2 py-1 rounded">মোট শিক্ষার্থী: <span id="filter-modal-count" class="text-[#005A34]">0</span></span>
+        </div>
+        <div class="p-3 border-t bg-white flex gap-2">
+            <button onclick="resetFilter()" class="w-1/3 bg-gray-200 text-gray-800 font-bold py-2 rounded-lg text-sm">রিসেট</button>
+            <button onclick="applyAdvancedFilter()" class="w-2/3 bg-[#1e40af] text-white font-bold py-2 rounded-lg flex justify-center items-center gap-2 text-sm">
+                <i data-lucide="check-check" class="w-4 h-4"></i> ফিল্টার সেট করুন
+            </button>
+        </div>
+    </div>
+</div>
+
 <div id="student-profile-modal" class="fixed inset-0 z-[99999] hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-0 duration-300">
     <div class="bg-white rounded-[24px] w-full max-w-sm max-h-[85vh] overflow-y-auto custom-scrollbar shadow-2xl transform scale-95 transition-transform duration-300 relative" id="profile-card">
         <div class="h-28 bg-gradient-to-r from-indigo-500 to-blue-600 relative shrink-0">
@@ -1760,6 +1800,199 @@ async function generateSuperPDF() {
         btn.disabled = false;
     }, 500);
 }
+
+
+// ==========================================
+// ADVANCED FILTER & MANUAL LOAD LOGIC
+// ==========================================
+let filteredStudentsManual = [];
+
+function openFilterModal() {
+    const allStudents = Object.values(state.students);
+    if(allStudents.length === 0) { 
+        Swal.fire('ডেটাবেস খালি!', 'প্রথমে সেটিংস থেকে API ডাটা সিঙ্ক করুন।', 'warning'); 
+        return; 
+    }
+    document.getElementById('filter-modal-count').innerText = e2b(allStudents.length);
+    const container = document.getElementById('filter-rules-container');
+    if(container.children.length === 0) addFilterRule();
+    
+    const modal = document.getElementById('filter-modal');
+    const card = document.getElementById('filter-modal-card');
+    modal.classList.remove('hidden');
+    setTimeout(() => card.classList.remove('scale-95'), 10);
+    if(window.lucide) lucide.createIcons();
+}
+
+function closeFilterModal() { 
+    const modal = document.getElementById('filter-modal');
+    const card = document.getElementById('filter-modal-card');
+    card.classList.add('scale-95');
+    setTimeout(() => modal.classList.add('hidden'), 200);
+}
+
+// এই ফাংশনটি নোটিশ অ্যাপের মতোই রুল যোগ করবে
+function addFilterRule() {
+    const container = document.getElementById('filter-rules-container');
+    const ruleId = Date.now();
+    const isFirst = container.children.length === 0;
+
+    const ruleHTML = `      
+        <div class="filter-rule-item flex flex-col sm:flex-row gap-2 sm:items-center bg-white p-3 border rounded-lg shadow-sm relative" id="rule-${ruleId}">      
+            <div class="w-full sm:w-24 ${isFirst ? 'hidden' : ''}">
+                <select class="rule-connector w-full border rounded p-1.5 text-xs font-bold text-gray-700 outline-none">
+                    <option value="&&">AND (এবং)</option>
+                    <option value="||">OR (অথবা)</option>
+                </select>
+            </div>
+            <div class="w-full sm:w-1/3">
+                <select class="rule-field w-full border rounded p-1.5 text-sm font-bold text-[#005A34] outline-none" onchange="updateFilterInputUI(this)">      
+                    <option value="roll">রোল (Roll)</option>      
+                    <option value="classBn">শ্রেণি (Class)</option>      
+                    <option value="nameBn">নাম (Name)</option>      
+                    <option value="id">আইডি (ID)</option>      
+                </select>
+            </div>
+            <div class="w-full sm:w-1/3">
+                <select class="rule-operator w-full border rounded p-1.5 text-sm outline-none" onchange="updateFilterInputUI(this)">      
+                    <option value="==">Equal (=)</option>
+                    <option value="contains">Contains</option>
+                    <option value="between" style="color: green; font-weight:bold;">মাঝামাঝি (১০-২০)</option>
+                </select>
+            </div>
+            <div class="w-full sm:flex-1">
+                <div class="rule-value-container">
+                    <input type="text" class="rule-val-single w-full border rounded p-1.5 text-sm outline-none" placeholder="Value...">
+                </div>
+            </div>
+            <button onclick="document.getElementById('rule-${ruleId}').remove()" class="text-red-500 hover:text-white bg-red-50 hover:bg-red-500 p-1.5 rounded-md transition-colors">      
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+        </div>      
+    `;
+    container.insertAdjacentHTML('beforeend', ruleHTML);
+    updateFilterInputUI(document.getElementById(`rule-${ruleId}`).querySelector('.rule-field'));
+    if(window.lucide) lucide.createIcons();
+}
+
+function updateFilterInputUI(el) {
+    const row = el.closest('.filter-rule-item');
+    const field = row.querySelector('.rule-field').value;
+    const operator = row.querySelector('.rule-operator').value;
+    const valContainer = row.querySelector('.rule-value-container');
+
+    if (operator === 'between') {
+        if (field === 'classBn') {
+            const classes = ['প্লে', 'নার্সারি', 'কেজি', '১ম', '২য়', '৩য়', '৪র্থ', '৫ম', '৬ষ্ঠ', '৭ম', '৮ম', '৯ম', '১০ম'];
+            let opts = classes.map(c => `<option value="${c}">${c}</option>`).join('');
+            valContainer.innerHTML = `<div class="flex gap-2"><select class="rule-val-min w-1/2 border rounded p-1.5 text-sm outline-none">${opts}</select><select class="rule-val-max w-1/2 border rounded p-1.5 text-sm outline-none">${opts}</select></div>`;
+        } else {
+            valContainer.innerHTML = `<div class="flex gap-2"><input type="text" class="rule-val-min w-1/2 border rounded p-1.5 text-sm outline-none" placeholder="Min"><input type="text" class="rule-val-max w-1/2 border rounded p-1.5 text-sm outline-none" placeholder="Max"></div>`;
+        }
+        return;
+    }
+
+    if (field === 'classBn' && operator === '==') {
+        valContainer.innerHTML = `<select class="rule-val-single w-full border rounded p-1.5 text-sm font-bold text-[#005A34] outline-none"><option value="প্লে">প্লে</option><option value="নার্সারি">নার্সারি</option><option value="কেজি">কেজি</option><option value="১ম">১ম</option><option value="২য়">২য়</option><option value="৩য়">৩য়</option><option value="৪র্থ">৪র্থ</option><option value="৫ম">৫ম</option><option value="৬ষ্ঠ">৬ষ্ঠ</option><option value="৭ম">৭ম</option><option value="৮ম">৮ম</option><option value="৯ম">৯ম</option><option value="১০ম">১০ম</option></select>`;
+        return;
+    }
+
+    valContainer.innerHTML = `<input type="text" class="rule-val-single w-full border rounded p-1.5 text-sm outline-none" placeholder="Value...">`;
+}
+
+function resetFilter() {
+    document.getElementById('filter-rules-container').innerHTML = '';
+    filteredStudentsManual = [];
+    closeFilterModal();
+    Toast.fire({ icon: 'info', title: 'ফিল্টার রিসেট করা হয়েছে' });
+}
+
+function applyAdvancedFilter() {
+    const allStudents = Object.values(state.students);
+    const allRuleItems = document.querySelectorAll('.filter-rule-item');
+    
+    if(allRuleItems.length === 0) { resetFilter(); return; }
+
+    const classOrderMap = { "প্লে": 1, "নার্সারি": 2, "কেজি": 3, "১ম": 4, "২য়": 5, "৩য়": 6, "৪র্থ": 7, "৫ম": 8, "৬ষ্ঠ": 9, "৭ম": 10, "৮ম": 11, "৯ম": 12, "১০ম": 13 };
+
+    filteredStudentsManual = allStudents.filter(st => {
+        let finalResult = false;
+        let currentGroupResult = true;
+
+        allRuleItems.forEach((item, index) => {
+            const field = item.querySelector('.rule-field').value;
+            const operator = item.querySelector('.rule-operator').value;
+            let connector = index > 0 ? item.querySelector('.rule-connector').value : "";
+
+            let valInput1 = item.querySelector('.rule-val-single');
+            let valInputMin = item.querySelector('.rule-val-min');
+            let valInputMax = item.querySelector('.rule-val-max');
+
+            let inputVal = valInput1 ? valInput1.value.trim() : '';
+            let stVal = st[field] || "";
+
+            let conditionMet = false;
+            let numStVal = parseFloat(String(stVal));
+
+            if (operator === 'between') {
+                if (field === 'classBn') {
+                    let stRank = classOrderMap[stVal] || 99;
+                    conditionMet = (stRank >= (classOrderMap[valInputMin.value]||0) && stRank <= (classOrderMap[valInputMax.value]||99));
+                } else {
+                    conditionMet = (numStVal >= parseFloat(valInputMin.value) && numStVal <= parseFloat(valInputMax.value));
+                }
+            } else {
+                let isClassCmp = field === 'classBn';
+                let val1 = isClassCmp ? (classOrderMap[stVal] || 99) : String(stVal).toLowerCase();
+                let val2 = isClassCmp ? (classOrderMap[inputVal] || 99) : inputVal.toLowerCase();
+
+                if(operator === '==') conditionMet = (val1 == val2);
+                else if(operator === 'contains') conditionMet = String(val1).includes(String(val2));
+            }
+
+            if (index === 0) currentGroupResult = conditionMet; 
+            else {
+                if (connector === '||') { finalResult = finalResult || currentGroupResult; currentGroupResult = conditionMet; } 
+                else { currentGroupResult = currentGroupResult && conditionMet; }
+            }
+        });
+        return finalResult || currentGroupResult;
+    });
+
+    closeFilterModal();
+    Toast.fire({ icon: 'success', title: `ফিল্টার সেট হয়েছে (${e2b(filteredStudentsManual.length)} জন)` });
+}
+
+// "ডাটা লোড" বাটনের লজিক
+function loadManualData() {
+    const listContainer = document.getElementById('manual-data-list');
+    listContainer.innerHTML = '';
+
+    if(filteredStudentsManual.length === 0) {
+        Swal.fire('ডেটা নেই', 'প্রথমে "এপ্লাই ফিল্টার" এ ক্লিক করে শিক্ষার্থী খুঁজে নিন।', 'info');
+        return;
+    }
+
+    filteredStudentsManual.slice(0, 50).forEach(s => { // একসাথে সর্বোচ্চ ৫০ জন দেখাবে যেন হ্যাং না করে
+        const img = s.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.nameEn || 'S')}&background=4F46E5&color=fff`;
+        listContainer.innerHTML += `
+            <div onclick="openStudentProfile('${s.id}')" class="bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex items-center gap-3 cursor-pointer hover:bg-slate-50 active:scale-95 transition-all">
+                <img src="${img}" class="w-10 h-10 rounded-full object-cover border border-slate-200">
+                <div class="flex-1 min-w-0">
+                    <h4 class="font-bold text-slate-800 text-sm truncate">${s.nameBn}</h4>
+                    <p class="text-xs text-slate-500">আইডি: ${s.id} | রোল: ${e2b(s.roll)} | শ্রেণি: ${s.classBn}</p>
+                </div>
+                <button class="bg-[#005A34] text-white px-2 py-1 rounded text-[10px] font-bold shadow flex items-center gap-1">
+                    ওপেন <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                </button>
+            </div>
+        `;
+    });
+    if(window.lucide) lucide.createIcons();
+}
+
+
+    
     // Mobile back button close modal
 window.addEventListener("popstate", function(event) {
 
