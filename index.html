@@ -1576,21 +1576,36 @@ function addPdfColumn(type) {
     });
     renderTableColumns();
 }
+
+
 async function generateSuperPDF() {
     const btn = document.getElementById('btn-generate-pdf');
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> প্রস্তুত হচ্ছে...';
     btn.disabled = true;
 
-    const term = document.getElementById('search-input')?.value.toLowerCase() || '';
-    let dataToExport = [...state.historyData].map(record => ({ ...record, ...state.students[record.id] }));
+    // --- আপডেটেড লজিক: স্ক্রিনে বর্তমানে ফিল্টার হয়ে থাকা ডাটাগুলো DOM থেকে নেয়া ---
+    const historyListElements = document.querySelectorAll('#full-history-list div[onclick^="openStudentProfile"]');
+    let dataToExport = [];
     
-    if(term) {
-        dataToExport = dataToExport.filter(s => 
-            (s.nameBn && s.nameBn.includes(term)) || 
-            (s.nameEn && s.nameEn.toLowerCase().includes(term)) || 
-            (s.id && s.id.includes(term))
-        );
+    historyListElements.forEach(el => {
+        const match = el.getAttribute('onclick').match(/'([^']+)'/);
+        if (match && match[1]) {
+            const id = match[1];
+            // historyData এবং student ডাটা এক করে লিস্টে যোগ করা
+            const record = state.historyData.find(r => r.id === id) || { id: id };
+            if (state.students[id]) {
+                dataToExport.push({ ...record, ...state.students[id] });
+            }
+        }
+    });
+
+    if (dataToExport.length === 0) {
+        Swal.fire('ফাঁকা লিস্ট', 'পিডিএফ করার মতো কোনো ডাটা খুঁজে পাওয়া যায়নি।', 'info');
+        btn.innerHTML = '<i class="fa-solid fa-print"></i> পিডিএফ তৈরি করুন';
+        btn.disabled = false;
+        return;
     }
+    // --- আপডেটেড লজিক শেষ ---
 
     const title = e2b(document.getElementById('pdf-title').value);
     const subtitle = e2b(document.getElementById('pdf-subtitle').value);
@@ -1675,7 +1690,7 @@ async function generateSuperPDF() {
             </div>`;
     } 
     else {
-        // --- Plain View (নতুন লজিক) ---
+        // --- Plain View (অপরিবর্তিত আছে) ---
         const groupBy = document.getElementById('pdf-group-by').value;
         const cols = parseInt(document.getElementById('pdf-plain-cols').value) || 3;
         const separator = document.getElementById('pdf-separator').value || ' - ';
@@ -1697,14 +1712,13 @@ async function generateSuperPDF() {
                 } else if (groupBy === 'gender') {
                     keyVal = guessGender(s);
                } else {
-    // সরাসরি ব্যাকএন্ডের ফিল্ড নেম থেকে ডাটা নেবে
-    let val = s[groupBy];
-    if (val === undefined || val === null || val === '') {
-        keyVal = (groupBy === 'BloodGroup') ? 'গ্রুপ অজানা' : 'অন্যান্য';
-    } else {
-        keyVal = val;
-    }
-}
+                    let val = s[groupBy];
+                    if (val === undefined || val === null || val === '') {
+                        keyVal = (groupBy === 'BloodGroup') ? 'গ্রুপ অজানা' : 'অন্যান্য';
+                    } else {
+                        keyVal = val;
+                    }
+                }
 
                 if(!groupedData[keyVal]) groupedData[keyVal] = [];
                 groupedData[keyVal].push(s);
@@ -1758,19 +1772,17 @@ async function generateSuperPDF() {
                 let mainParts = [];
 
                 plainFieldsOrder.forEach(f => {
-    let val = '';
-    if (f === 'serial') val = e2b(serialCount) + '.'; 
-    else if (f === 'gender') val = guessGender(s);
-    else val = s[f] || s[f.toLowerCase()] || ''; // সরাসরি ফিল্ড নেম কল করবে
+                    let val = '';
+                    if (f === 'serial') val = e2b(serialCount) + '.'; 
+                    else if (f === 'gender') val = guessGender(s);
+                    else val = s[f] || s[f.toLowerCase()] || ''; 
 
                     if (val) {
                         val = (f !== 'serial') ? e2b(val) : val; 
                         
                         if (f === 'serial') {
-                            // সিরিয়াল সবসময় নির্দিষ্ট উইডথ পাবে
                             prefixHtml += `<span class="hp-serial">${val}</span>`;
                         } else if (f === 'roll' && !mainParts.length && !hasSerial) {
-                            // সিরিয়াল না থাকলে রোল নিজে নির্দিষ্ট উইডথ পাবে (সেপারেটরসহ)
                             prefixHtml += `<span class="hp-roll">${val}${separator}</span>`;
                         } else {
                             mainParts.push(val);
@@ -1819,6 +1831,8 @@ async function generateSuperPDF() {
         btn.disabled = false;
     }, 500);
 }
+
+    
 // ==========================================
 // ADVANCED FILTER & MANUAL LOAD LOGIC
 // ==========================================
