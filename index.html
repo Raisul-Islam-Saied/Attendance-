@@ -1798,8 +1798,8 @@ async function generateSuperPDF() {
         btn.disabled = false;
     }, 500);
 }
-
-// ==========================================
+    
+    // ==========================================
 // ADVANCED FILTER & MANUAL LOAD LOGIC
 // ==========================================
 let currentFilterMode = 'history'; // 'history' বা 'load'
@@ -1984,7 +1984,13 @@ function getFilteredData(sourceData) {
 
 function applyHistoryFilter() {
     // ১. হিস্ট্রি ডাটা ম্যাপ করে ফুল স্টুডেন্ট অবজেক্ট বানানো
-    const scannedStudents = state.historyData.map(record => ({ ...record, ...state.students[record.id] })).filter(s => s.nameBn);
+    const scannedStudents = state.historyData.map(record => {
+        let studentData = state.students[record.id];
+        if (studentData) {
+            return { ...record, ...studentData };
+        }
+        return null;
+    }).filter(s => s !== null);
     
     // ২. ফিল্টার করা
     const filteredHistory = getFilteredData(scannedStudents);
@@ -2073,6 +2079,7 @@ function loadManualData() {
         timer: 3000
     });
 }
+
     
     // Mobile back button close modal
 window.addEventListener("popstate", function(event) {
