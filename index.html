@@ -1470,12 +1470,12 @@ openPdfModal = function() {
 }
 
 
-// --- পিডিএফ জেনারেটর ইঞ্জিন ---
 async function generateSuperPDF() {
     const btn = document.getElementById('btn-generate-pdf');
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> প্রস্তুত হচ্ছে...';
     btn.disabled = true;
 
+    // 1. Get Filtered Data
     const term = document.getElementById('search-input')?.value.toLowerCase() || '';
     let dataToExport = [...state.historyData].map(record => ({ ...record, ...state.students[record.id] }));
     
@@ -1525,6 +1525,7 @@ async function generateSuperPDF() {
         <div class="pdf-body">
     `;
 
+    // --- TABLE FORMAT LOGIC (OFFICIAL) ---
     if (pdfConfig.format === 'table') {
         htmlContent += `
             ${title ? `<h1 style="text-align: center; font-size: 26px; font-family: 'Anek Bangla', sans-serif; font-weight: 800; margin-bottom: ${subtitle ? '5px' : '20px'}; color: #000;">${title}</h1>` : ''}
@@ -1576,11 +1577,14 @@ async function generateSuperPDF() {
             </div>
         `;
     } 
+    
+    // --- PLAIN FORMAT LOGIC (SMART FIELDS WITH SERIAL) ---
     else {
         const groupBy = document.getElementById('pdf-group-by').value;
         const cols = parseInt(document.getElementById('pdf-plain-cols').value) || 3;
         const separator = document.getElementById('pdf-separator').value || ' - ';
         
+        // এখানে চেকবক্সের বদলে আপনার দেওয়া "pdf-plain-fields" ইনপুট থেকে ফিল্ড নেওয়া হচ্ছে
         const fieldsRaw = document.getElementById('pdf-plain-fields').value;
         const fields = fieldsRaw.split(',').map(f => f.trim()).filter(f => f);
 
@@ -1592,6 +1596,7 @@ async function generateSuperPDF() {
         }
 
         let groupedData = {};
+        
         if (groupBy) {
             dataToExport.forEach(s => {
                 let keyVal = 'অন্যান্য';
@@ -1605,6 +1610,7 @@ async function generateSuperPDF() {
                 } else {
                     keyVal = s[groupBy] || s[groupBy.toLowerCase()] || s[groupBy.charAt(0).toUpperCase() + groupBy.slice(1)] || 'অন্যান্য';
                 }
+                
                 if(!groupedData[keyVal]) groupedData[keyVal] = [];
                 groupedData[keyVal].push(s);
             });
@@ -1616,7 +1622,10 @@ async function generateSuperPDF() {
         groupKeys.sort((a, b) => {
             if (a === 'অন্যান্য' || a === 'অজানা') return 1;
             if (b === 'অন্যান্য' || b === 'অজানা') return -1;
-            if (groupBy === 'age' || groupBy === 'roll') return parseInt(toEn(a)) - parseInt(toEn(b));
+            
+            if (groupBy === 'age' || groupBy === 'roll') {
+                return parseInt(toEn(a)) - parseInt(toEn(b));
+            }
             if (groupBy === 'classBn') {
                 const classOrderMap = { "প্লে": 1, "নার্সারি": 2, "কেজি": 3, "১ম": 4, "২য়": 5, "৩য়": 6, "৪র্থ": 7, "৫ম": 8, "৬ষ্ঠ": 9, "৭ম": 10, "৮ম": 11, "৯ম": 12, "১০ম": 13 };
                 return (classOrderMap[a] || 99) - (classOrderMap[b] || 99);
@@ -1626,6 +1635,7 @@ async function generateSuperPDF() {
 
         for (const groupName of groupKeys) {
             const groupStudents = groupedData[groupName];
+            
             htmlContent += `<div class="hp-class-section">`;
 
             if (groupBy) {
@@ -1642,9 +1652,13 @@ async function generateSuperPDF() {
                 }
 
                 let displayGroupName = e2b(groupName);
-                if (groupBy === 'classBn' && groupName !== 'অন্যান্য') displayGroupName += " শ্রেণি";
-                else if (groupBy === 'age' && groupName !== 'অজানা') displayGroupName = "বয়স " + displayGroupName;
-                else if (groupBy === 'blood' && groupName !== 'অজানা') displayGroupName += " (ব্লাড গ্রুপ)";
+                if (groupBy === 'classBn' && groupName !== 'অন্যান্য') {
+                    displayGroupName += " শ্রেণি";
+                } else if (groupBy === 'age' && groupName !== 'অজানা') {
+                    displayGroupName = "বয়স " + displayGroupName;
+                } else if (groupBy === 'blood' && groupName !== 'অজানা') {
+                    displayGroupName += " (ব্লাড গ্রুপ)";
+                }
 
                 htmlContent += `
                     <div class="hp-class-header">
