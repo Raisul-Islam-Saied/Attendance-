@@ -478,19 +478,20 @@
     <div class="flex flex-wrap gap-2 mb-2" id="dynamic-plain-fields">
         </div>
     <select id="plain-field-selector" onchange="addPlainField(this.value)" class="w-full bg-slate-50 border border-slate-200 text-sm rounded-xl px-4 py-2.5 outline-none font-bold focus:border-indigo-400 text-slate-700">
-        <option value="">+ নতুন তথ্য যুক্ত করুন</option>
-        <option value="serial">সিরিয়াল নং (১. ২.)</option>
-        <option value="roll">রোল</option>
-        <option value="nameBn">নাম (বাংলা)</option>
-        <option value="nameEn">নাম (ইংরেজি)</option>
-        <option value="classBn">শ্রেণী</option>
-        <option value="id">আইডি</option>
-        <option value="gender">লিঙ্গ (ছাত্র/ছাত্রী)</option>
-        <option value="blood">রক্তের গ্রুপ</option>
-        <option value="father">পিতার নাম</option>
-        <option value="mother">মাতার নাম</option>
-    </select>
-                            </div>
+    <option value="">+ নতুন তথ্য যুক্ত করুন</option>
+    <option value="serial">সিরিয়াল নং (১. ২.)</option>
+    <option value="roll">রোল</option>
+    <option value="nameBn">নাম (বাংলা)</option>
+    <option value="nameEn">নাম (ইংরেজি)</option>
+    <option value="classBn">শ্রেণী</option>
+    <option value="id">আইডি</option>
+    <option value="gender">লিঙ্গ (ছাত্র/ছাত্রী)</option>
+    <option value="BloodGroup">রক্তের গ্রুপ</option>
+    <option value="FatherNameBn">পিতার নাম (বাংলা)</option>
+    <option value="MotherNameBn">মাতার নাম (বাংলা)</option>
+    <option value="WhatsApp">মোবাইল নম্বর</option>
+</select>
+                        </div>
 
             </div>
 
@@ -1395,10 +1396,13 @@ function setPdfFormat(format) {
 }
 
 let plainFieldsOrder = ['serial', 'roll', 'nameBn'];
+let plainFieldsOrder = ['serial', 'roll', 'nameBn'];
 const plainFieldLabels = {
     serial: 'সিরিয়াল', roll: 'রোল', nameBn: 'নাম (বাংলা)', nameEn: 'নাম (ইংরেজি)', 
-    classBn: 'শ্রেণী', id: 'আইডি', gender: 'লিঙ্গ', blood: 'রক্তের গ্রুপ', father: 'পিতা', mother: 'মাতা'
+    classBn: 'শ্রেণী', id: 'আইডি', gender: 'লিঙ্গ', BloodGroup: 'রক্তের গ্রুপ', 
+    FatherNameBn: 'পিতা', MotherNameBn: 'মাতা', WhatsApp: 'মোবাইল'
 };
+
 
 function renderPlainFields() {
     const container = document.getElementById('dynamic-plain-fields');
@@ -1634,9 +1638,16 @@ async function generateSuperPDF() {
                     keyVal = age !== null ? age : 'অজানা';
                 } else if (groupBy === 'gender') {
                     keyVal = guessGender(s);
-                } else {
-                    keyVal = s[groupBy] || s[groupBy.toLowerCase()] || s[groupBy.charAt(0).toUpperCase() + groupBy.slice(1)] || 'অন্যান্য';
-                }
+               } else {
+    // সরাসরি ব্যাকএন্ডের ফিল্ড নেম থেকে ডাটা নেবে
+    let val = s[groupBy];
+    if (val === undefined || val === null || val === '') {
+        keyVal = (groupBy === 'BloodGroup') ? 'গ্রুপ অজানা' : 'অন্যান্য';
+    } else {
+        keyVal = val;
+    }
+}
+
                 if(!groupedData[keyVal]) groupedData[keyVal] = [];
                 groupedData[keyVal].push(s);
             });
@@ -1689,12 +1700,11 @@ async function generateSuperPDF() {
                 let mainParts = [];
 
                 plainFieldsOrder.forEach(f => {
-                    let val = '';
-                    if (f === 'serial') val = e2b(serialCount) + '.'; // সিরিয়ালের পর ডট
-                    else if (f === 'gender') val = guessGender(s);
-                    else if (f === 'blood') val = s.BloodGroup || s.bloodGroup || s.blood || 'অজানা';
-                    else val = s[f] || s[f.toLowerCase()] || s[f.charAt(0).toUpperCase() + f.slice(1)];
-                    
+    let val = '';
+    if (f === 'serial') val = e2b(serialCount) + '.'; 
+    else if (f === 'gender') val = guessGender(s);
+    else val = s[f] || s[f.toLowerCase()] || ''; // সরাসরি ফিল্ড নেম কল করবে
+
                     if (val) {
                         val = (f !== 'serial') ? e2b(val) : val; 
                         
