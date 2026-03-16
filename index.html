@@ -316,12 +316,15 @@
             <div id="upload-status" class="mt-3 text-sm text-center font-medium hidden"></div>  
         </div>  
 
-        <!-- Danger Zone -->  
-        <div class="bg-white rounded-2xl p-5 shadow-sm border border-red-100">  
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-red-100">  
             <h3 class="font-bold text-red-600 mb-2 flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation"></i> ডেঞ্জার জোন</h3>  
             <p class="text-xs text-slate-500 mb-4">নিচের অ্যাকশনগুলো পূর্বাবস্থায় ফিরিয়ে আনা যাবে না।</p>  
               
             <div class="space-y-3">  
+                <button onclick="undoLastEntry()" class="w-full bg-orange-50 text-orange-600 border border-orange-200 py-3 rounded-xl text-sm font-bold active:bg-orange-100 transition flex justify-center items-center gap-2">  
+                    <i class="fa-solid fa-rotate-left"></i> সর্বশেষ এন্ট্রি বাতিল করুন (Undo)
+                </button>
+
                 <button onclick="clearHistory()" class="w-full bg-red-50 text-red-600 border border-red-200 py-3 rounded-xl text-sm font-bold active:bg-red-100 transition flex justify-center items-center gap-2">  
                     <i class="fa-regular fa-trash-can"></i> সকল হিস্ট্রি মুছুন  
                 </button>  
@@ -330,7 +333,7 @@
                 </button>  
             </div>  
         </div>  
-          
+
         <p class="text-center text-xs text-slate-400 mt-8">ভার্সন ৪.০.০ • এডভান্সড ইনফো ফাইন্ডার</p>  
     </section>  
 
@@ -1344,6 +1347,39 @@ const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d])
             console.error('Copy failed: ', err);
             Swal.fire('ত্রুটি', 'আইডি কপি করা যায়নি!', 'error');
         });
+    }
+    function undoLastEntry() {
+        if (state.historyData.length === 0) {
+            Swal.fire('হিস্ট্রি খালি!', 'বাতিল করার মতো কোনো ডাটা হিস্ট্রিতে নেই।', 'info');
+            return;
+        }
+
+        // যেহেতু নতুন ডাটা সবসময় array-এর শুরুতে (index 0) থাকে
+        const lastEntry = state.historyData[0];
+        const targetTimestamp = lastEntry.timestamp;
+        
+        // একই সময়ে এন্ট্রি হওয়া সব ডাটা খুঁজে বের করা (সিঙ্গেল স্ক্যান হলে ১টি, অ্যাডভান্সড লোড হলে একাধিক)
+        const itemsToRemove = state.historyData.filter(r => r.timestamp === targetTimestamp);
+        const count = itemsToRemove.length;
+
+        Swal.fire({  
+            title: 'সর্বশেষ এন্ট্রি বাতিল?',  
+            text: `আপনি কি নিশ্চিত যে সর্বশেষ যুক্ত হওয়া ${e2b(count)} জনের ডাটা হিস্ট্রি থেকে মুছে ফেলতে চান?`,  
+            icon: 'warning',  
+            showCancelButton: true,  
+            confirmButtonColor: '#f97316', // Orange color for Undo
+            cancelButtonColor: '#3085d6',  
+            confirmButtonText: 'হ্যাঁ, বাতিল করুন',  
+            cancelButtonText: 'না'  
+        }).then((result) => {  
+            if (result.isConfirmed) {  
+                // ঐ নির্দিষ্ট timestamp ছাড়া বাকি ডাটাগুলো রেখে দেওয়া
+                state.historyData = state.historyData.filter(r => r.timestamp !== targetTimestamp);  
+                saveHistoryData(); // এটি স্বয়ংক্রিয়ভাবে ড্যাশবোর্ড আপডেট করবে
+                
+                Swal.fire('বাতিল হয়েছে!', `সর্বশেষ ${e2b(count)} জনের এন্ট্রি হিস্ট্রি থেকে মুছে ফেলা হয়েছে।`, 'success');  
+            }  
+        });  
     }
 
     function clearHistory() {  
