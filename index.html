@@ -1248,23 +1248,29 @@ const timeOnly = parts[0] + ':' + parts[1] + ' ' + record.timeStr.split(' ')[1];
 const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
             const dateBn = record.dateStr.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
 
-            html += `  
-                <div onclick="openStudentProfile('${record.id}')" class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 fade-in cursor-pointer hover:bg-slate-50 active:scale-[0.98] transition-all">  
-                    <img src="${img}" class="w-12 h-12 rounded-full object-cover border-2 border-indigo-50" onerror="this.src='https://ui-avatars.com/api/?name=S&background=random'">  
-                    <div class="flex-1 min-w-0">  
-                        <h4 class="font-bold text-slate-800 text-sm truncate">${s.nameBn}</h4>  
-                        <div class="flex items-center gap-2 mt-1 text-xs text-slate-500">  
-                            <span class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">আইডি: ${record.id}</span>  
-                            <span>রোল: ${s.roll || '-'}</span>  
-                            <span class="hidden sm:inline">• শ্রেণী: ${s.classBn || '-'}</span>
-                        </div>  
-                    </div>  
-                    <div class="text-[10px] font-medium text-slate-400 text-right flex flex-col justify-center">  
-                        <span class="text-xs text-slate-600 font-bold"><i class="fa-regular fa-clock mr-0.5"></i> ${timeBn}</span>
-                        <span>${dateBn}</span>
+                   html += `  
+            <div onclick="openStudentProfile('${record.id}')" class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3 fade-in cursor-pointer hover:bg-slate-50 active:scale-[0.98] transition-all">  
+                <img src="${img}" class="w-12 h-12 rounded-full object-cover border-2 border-indigo-50" onerror="this.src='https://ui-avatars.com/api/?name=S&background=random'">  
+                <div class="flex-1 min-w-0">  
+                    <h4 class="font-bold text-slate-800 text-sm truncate">${s.nameBn}</h4>  
+                    <div class="flex items-center gap-2 mt-1 text-xs text-slate-500">  
+                        <span class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">আইডি: ${record.id}</span>  
+                        <span>রোল: ${s.roll || '-'}</span>  
+                        <span class="hidden sm:inline">• শ্রেণী: ${s.classBn || '-'}</span>
                     </div>  
                 </div>  
-            `;  
+                <div class="text-[10px] font-medium text-slate-400 text-right flex flex-col justify-between items-end h-full py-0.5">  
+                    <div>
+                        <span class="text-xs text-slate-600 font-bold"><i class="fa-regular fa-clock mr-0.5"></i> ${timeBn}</span>
+                        <span class="block mt-0.5">${dateBn}</span>
+                    </div>
+                    <button onclick="deleteHistoryItem(event, '${record.id}', ${record.timestamp})" class="mt-1.5 text-red-500 bg-red-50 hover:bg-red-500 hover:text-white p-1.5 rounded-lg transition-colors active:scale-90" title="হিস্ট্রি থেকে মুছুন">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                </div>  
+            </div>  
+        `;  
+  
         });  
         listContainer.innerHTML = html;  
     }  
@@ -1273,6 +1279,36 @@ const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d])
         const term = document.getElementById('search-input').value;  
         renderHistoryUI(term);  
     }  
+function deleteHistoryItem(event, studentId, timestamp) {
+    // বাটনে ক্লিক করলে যেন ভুলে প্রোফাইল ওপেন না হয়ে যায়, সেজন্য ইভেন্ট স্টপ করা
+    event.stopPropagation();
+    
+    Swal.fire({
+        title: 'নিশ্চিত?',
+        text: "এই শিক্ষার্থীর ডাটাটি হিস্ট্রি থেকে মুছে ফেলতে চান?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'হ্যাঁ, মুছুন',
+        cancelButtonText: 'না'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // নির্দিষ্ট আইডি এবং টাইমস্ট্যাম্প ধরে ডাটা রিমুভ করা
+            state.historyData = state.historyData.filter(r => !(r.id === studentId && r.timestamp === timestamp));
+            
+            saveHistoryData(); // এটি লোকাল স্টোরেজ ও ড্যাশবোর্ড আপডেট করবে
+            
+            // সার্চ বক্সে কিছু লেখা থাকলে সেটা ধরে আবার লিস্ট রেন্ডার করা
+            const term = document.getElementById('search-input').value;
+            renderHistoryUI(term);
+            
+            if(typeof Toast !== 'undefined') {
+                Toast.fire({ icon: 'success', title: 'হিস্ট্রি থেকে মুছে ফেলা হয়েছে!' });
+            }
+        }
+    });
+}
 
     /** * ==========================================  
      * EXPORT & DATA MANAGEMENT  
