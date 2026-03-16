@@ -474,29 +474,25 @@
                     </div>
                 </div>
                 
-                                <div>
-                    <h3 class="text-xs font-bold text-slate-600 mb-2">কী কী তথ্য দেখাবেন? (টিক দিন)</h3>
-                    <div class="flex flex-wrap gap-2" id="pdf-plain-fields-container">
-                        <label class="bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-700 cursor-pointer flex items-center gap-1.5 hover:bg-indigo-100 transition-colors">
-                            <input type="checkbox" value="roll" class="plain-field-cb" checked> রোল
-                        </label>
-                        <label class="bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-700 cursor-pointer flex items-center gap-1.5 hover:bg-indigo-100 transition-colors">
-                            <input type="checkbox" value="nameBn" class="plain-field-cb" checked> নাম
-                        </label>
-                        <label class="bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-700 cursor-pointer flex items-center gap-1.5 hover:bg-indigo-100 transition-colors">
-                            <input type="checkbox" value="classBn" class="plain-field-cb"> শ্রেণী
-                        </label>
-                        <label class="bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-700 cursor-pointer flex items-center gap-1.5 hover:bg-indigo-100 transition-colors">
-                            <input type="checkbox" value="id" class="plain-field-cb"> আইডি
-                        </label>
-                        <label class="bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-700 cursor-pointer flex items-center gap-1.5 hover:bg-indigo-100 transition-colors">
-                            <input type="checkbox" value="father" class="plain-field-cb"> পিতা
-                        </label>
-                        <label class="bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-700 cursor-pointer flex items-center gap-1.5 hover:bg-indigo-100 transition-colors">
-                            <input type="checkbox" value="mother" class="plain-field-cb"> মাতা
-                        </label>
+                                                <div>
+                    <h3 class="text-xs font-bold text-slate-700 mb-2">কী কী তথ্য দেখাবেন? (ক্লিক করে যোগ করুন ও সাজান)</h3>
+                    
+                    <div id="selected-fields-container" class="flex flex-wrap gap-2 mb-3 p-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[55px] items-center shadow-inner">
+                        </div>
+                    
+                    <h4 class="text-[10px] font-bold text-slate-500 mb-1.5 uppercase tracking-wider">নিচের বাটনগুলোতে ক্লিক করে ফিল্ড যোগ করুন:</h4>
+                    <div class="flex flex-wrap gap-2" id="available-fields-container">
+                        <button type="button" onclick="addFieldToPlain('serial', 'সিরিয়াল')" class="bg-white border border-indigo-200 px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-600 hover:bg-indigo-50 shadow-sm active:scale-95 transition-all">+ সিরিয়াল</button>
+                        <button type="button" onclick="addFieldToPlain('roll', 'রোল')" class="bg-white border border-indigo-200 px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-600 hover:bg-indigo-50 shadow-sm active:scale-95 transition-all">+ রোল</button>
+                        <button type="button" onclick="addFieldToPlain('nameBn', 'নাম')" class="bg-white border border-indigo-200 px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-600 hover:bg-indigo-50 shadow-sm active:scale-95 transition-all">+ নাম</button>
+                        <button type="button" onclick="addFieldToPlain('classBn', 'শ্রেণী')" class="bg-white border border-indigo-200 px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-600 hover:bg-indigo-50 shadow-sm active:scale-95 transition-all">+ শ্রেণী</button>
+                        <button type="button" onclick="addFieldToPlain('id', 'আইডি')" class="bg-white border border-indigo-200 px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-600 hover:bg-indigo-50 shadow-sm active:scale-95 transition-all">+ আইডি</button>
+                        <button type="button" onclick="addFieldToPlain('father', 'পিতা')" class="bg-white border border-indigo-200 px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-600 hover:bg-indigo-50 shadow-sm active:scale-95 transition-all">+ পিতা</button>
+                        <button type="button" onclick="addFieldToPlain('mother', 'মাতা')" class="bg-white border border-indigo-200 px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-600 hover:bg-indigo-50 shadow-sm active:scale-95 transition-all">+ মাতা</button>
                     </div>
+                    <input type="hidden" id="pdf-plain-fields" value="roll,nameBn">
                 </div>
+
 
             </div>
 
@@ -1434,13 +1430,52 @@ function calculateAge(dobStr) {
     }
     return 'অজানা';
 }
+// --- স্মার্ট প্লেন ফিল্ড বিল্ডার লজিক ---
+let plainSelectedFields = [{val: 'roll', label: 'রোল'}, {val: 'nameBn', label: 'নাম'}];
 
+function renderPlainFields() {
+    const container = document.getElementById('selected-fields-container');
+    if(!container) return;
+    container.innerHTML = '';
+    if(plainSelectedFields.length === 0) {
+        container.innerHTML = '<span class="text-xs text-slate-400 font-medium">কোনো ফিল্ড সিলেক্ট করা হয়নি</span>';
+    }
+    plainSelectedFields.forEach((f, idx) => {
+        container.innerHTML += `
+            <div class="bg-indigo-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md transform transition-all">
+                ${f.label} 
+                <button type="button" onclick="removePlainField(${idx})" class="text-indigo-200 hover:text-red-300 transition-colors"><i class="fa-solid fa-circle-xmark"></i></button>
+            </div>
+        `;
+    });
+    document.getElementById('pdf-plain-fields').value = plainSelectedFields.map(f => f.val).join(',');
+}
+
+function addFieldToPlain(val, label) {
+    if(val === 'serial' && plainSelectedFields.some(f => f.val === 'serial')) return; // সিরিয়াল একবারই দেওয়া যাবে
+    plainSelectedFields.push({val, label});
+    renderPlainFields();
+}
+
+function removePlainField(idx) {
+    plainSelectedFields.splice(idx, 1);
+    renderPlainFields();
+}
+
+// মডাল ওপেন হলে ফিল্ডগুলো রেন্ডার হবে
+const oldOpenPdfModal = openPdfModal;
+openPdfModal = function() {
+    oldOpenPdfModal();
+    renderPlainFields();
+}
+
+
+// --- পিডিএফ জেনারেটর ইঞ্জিন ---
 async function generateSuperPDF() {
     const btn = document.getElementById('btn-generate-pdf');
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> প্রস্তুত হচ্ছে...';
     btn.disabled = true;
 
-    // 1. Get Filtered Data
     const term = document.getElementById('search-input')?.value.toLowerCase() || '';
     let dataToExport = [...state.historyData].map(record => ({ ...record, ...state.students[record.id] }));
     
@@ -1469,9 +1504,12 @@ async function generateSuperPDF() {
             .hp-class-stats { font-family: 'Noto Serif Bengali', 'Anek Bangla', sans-serif; font-size: 20px; font-weight: 600; color: #222; }
             
             .hp-grid { column-gap: 20px; }
-            .hp-item { display: flex; align-items: flex-start; gap: 5px; padding: 1.8px 0; font-size: 18px; page-break-inside: avoid; }
-            .hp-prefix { font-family: 'Noto Serif Bengali', monospace; font-weight: 700; font-size: 18px; color: #000; flex-shrink: 0; }
-            .hp-name { font-weight: 600; color: #111; font-size: 18px; white-space: normal; word-wrap: break-word; line-height: 1.2; }
+            
+            /* এখানে অ্যালাইনমেন্ট ফিক্স করা হয়েছে */
+            .hp-item { display: flex; align-items: baseline; gap: 6px; padding: 2.5px 0; font-size: 18px; page-break-inside: avoid; }
+            .hp-serial { font-family: 'Noto Serif Bengali', monospace; font-weight: 700; font-size: 18px; color: #000; flex-shrink: 0; min-width: 25px; text-align: left; }
+            .hp-prefix { font-family: 'Noto Serif Bengali', monospace; font-weight: 700; font-size: 18px; color: #000; flex-shrink: 0; min-width: 45px; text-align: left; }
+            .hp-name { font-weight: 600; color: #111; font-size: 18px; line-height: 1.3; flex-grow: 1; word-wrap: break-word; }
             
             .hp-footer-summary { margin-top: 25px; border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 10px; text-align: center; page-break-inside: avoid; }
             .hp-total-text { font-family: 'Noto Serif Bengali', 'Anek Bangla', sans-serif; font-size: 22px; font-weight: 800; color: #000; margin-bottom: 2px; }
@@ -1487,7 +1525,6 @@ async function generateSuperPDF() {
         <div class="pdf-body">
     `;
 
-    // --- TABLE FORMAT LOGIC (OFFICIAL) ---
     if (pdfConfig.format === 'table') {
         htmlContent += `
             ${title ? `<h1 style="text-align: center; font-size: 26px; font-family: 'Anek Bangla', sans-serif; font-weight: 800; margin-bottom: ${subtitle ? '5px' : '20px'}; color: #000;">${title}</h1>` : ''}
@@ -1539,15 +1576,13 @@ async function generateSuperPDF() {
             </div>
         `;
     } 
-    
-    // --- PLAIN FORMAT LOGIC (HALL PLAN EXACT MATCH) ---
     else {
         const groupBy = document.getElementById('pdf-group-by').value;
         const cols = parseInt(document.getElementById('pdf-plain-cols').value) || 3;
         const separator = document.getElementById('pdf-separator').value || ' - ';
         
-        const cbElements = document.querySelectorAll('.plain-field-cb:checked');
-        const fields = Array.from(cbElements).map(cb => cb.value);
+        const fieldsRaw = document.getElementById('pdf-plain-fields').value;
+        const fields = fieldsRaw.split(',').map(f => f.trim()).filter(f => f);
 
         if(title || subtitle) {
             htmlContent += `<div class="hp-header">`;
@@ -1557,11 +1592,9 @@ async function generateSuperPDF() {
         }
 
         let groupedData = {};
-        
         if (groupBy) {
             dataToExport.forEach(s => {
                 let keyVal = 'অন্যান্য';
-                // স্মার্ট ডেটা ফিল্টারিং ও গ্রুপিং
                 if (groupBy === 'blood') {
                     keyVal = s['Blood'] || s['blood'] || s['Blood Group'] || s['BloodGroup'] || s['রক্তের গ্রুপ'] || 'অজানা';
                 } else if (groupBy === 'gender') {
@@ -1572,7 +1605,6 @@ async function generateSuperPDF() {
                 } else {
                     keyVal = s[groupBy] || s[groupBy.toLowerCase()] || s[groupBy.charAt(0).toUpperCase() + groupBy.slice(1)] || 'অন্যান্য';
                 }
-                
                 if(!groupedData[keyVal]) groupedData[keyVal] = [];
                 groupedData[keyVal].push(s);
             });
@@ -1580,15 +1612,11 @@ async function generateSuperPDF() {
             groupedData['All'] = dataToExport;
         }
 
-        // লজিক্যাল সর্টিং (ছোট থেকে বড়, বা ক্লাস অনুযায়ী)
         let groupKeys = Object.keys(groupedData);
         groupKeys.sort((a, b) => {
             if (a === 'অন্যান্য' || a === 'অজানা') return 1;
             if (b === 'অন্যান্য' || b === 'অজানা') return -1;
-            
-            if (groupBy === 'age' || groupBy === 'roll') {
-                return parseInt(toEn(a)) - parseInt(toEn(b)); // ছোট থেকে বড় সাজানো
-            }
+            if (groupBy === 'age' || groupBy === 'roll') return parseInt(toEn(a)) - parseInt(toEn(b));
             if (groupBy === 'classBn') {
                 const classOrderMap = { "প্লে": 1, "নার্সারি": 2, "কেজি": 3, "১ম": 4, "২য়": 5, "৩য়": 6, "৪র্থ": 7, "৫ম": 8, "৬ষ্ঠ": 9, "৭ম": 10, "৮ম": 11, "৯ম": 12, "১০ম": 13 };
                 return (classOrderMap[a] || 99) - (classOrderMap[b] || 99);
@@ -1598,7 +1626,6 @@ async function generateSuperPDF() {
 
         for (const groupName of groupKeys) {
             const groupStudents = groupedData[groupName];
-            
             htmlContent += `<div class="hp-class-section">`;
 
             if (groupBy) {
@@ -1614,15 +1641,10 @@ async function generateSuperPDF() {
                     genderText = `(ছাত্র: ${e2b(boysCount)} জন | ছাত্রী: ${e2b(girlsCount)} জন)`;
                 }
 
-                // প্রফেশনাল টাইটেল মেকিং ("বয়স ৬", "প্লে শ্রেণি", "A+ (ব্লাড গ্রুপ)")
                 let displayGroupName = e2b(groupName);
-                if (groupBy === 'classBn' && groupName !== 'অন্যান্য') {
-                    displayGroupName += " শ্রেণি";
-                } else if (groupBy === 'age' && groupName !== 'অজানা') {
-                    displayGroupName = "বয়স " + displayGroupName;
-                } else if (groupBy === 'blood' && groupName !== 'অজানা') {
-                    displayGroupName += " (ব্লাড গ্রুপ)";
-                }
+                if (groupBy === 'classBn' && groupName !== 'অন্যান্য') displayGroupName += " শ্রেণি";
+                else if (groupBy === 'age' && groupName !== 'অজানা') displayGroupName = "বয়স " + displayGroupName;
+                else if (groupBy === 'blood' && groupName !== 'অজানা') displayGroupName += " (ব্লাড গ্রুপ)";
 
                 htmlContent += `
                     <div class="hp-class-header">
@@ -1634,34 +1656,45 @@ async function generateSuperPDF() {
 
             htmlContent += `<div class="hp-grid" style="column-count: ${cols};">`;
             
-            groupStudents.forEach(s => {
-                let itemStrArray = [];
+            groupStudents.forEach((s, index) => {
+                let hasSerial = false;
+                let otherFields = [];
+                
                 fields.forEach(f => {
-                    let val = s[f] || s[f.toLowerCase()] || s[f.charAt(0).toUpperCase() + f.slice(1)];
-                    if (f === 'gender') val = guessGender(s);
-                    if (f === 'age') {
-                        let dob = s['Age'] || s['age'] || s['DOB'] || s['Date of Birth'] || s['জন্ম তারিখ'] || s['DOB/Age'];
-                        val = calculateAge(dob);
+                    if (f === 'serial') {
+                        hasSerial = true;
+                    } else {
+                        let val = '';
+                        if (f === 'gender') val = guessGender(s);
+                        else if (f === 'age') {
+                            let dob = s['Age'] || s['age'] || s['DOB'] || s['Date of Birth'] || s['জন্ম তারিখ'] || s['DOB/Age'];
+                            val = calculateAge(dob);
+                        } else {
+                            val = s[f] || s[f.toLowerCase()] || s[f.charAt(0).toUpperCase() + f.slice(1)];
+                        }
+                        if(val) otherFields.push(e2b(val));
                     }
-                    if(val) itemStrArray.push(e2b(val));
                 });
                 
-                let prefix = "";
-                let mainText = "";
+                let itemHtml = '';
                 
-                if(itemStrArray.length > 1) {
-                    prefix = itemStrArray[0] + separator;
-                    mainText = itemStrArray.slice(1).join(separator);
-                } else {
-                    mainText = itemStrArray[0] || 'ডাটা নেই';
+                // সিরিয়াল থাকলে ডট যোগ হবে
+                if (hasSerial) {
+                    itemHtml += `<span class="hp-serial">${e2b(index + 1)}.</span>`;
                 }
                 
-                htmlContent += `
-                    <div class="hp-item">
-                        ${prefix ? `<span class="hp-prefix">${prefix}</span>` : ''}
-                        <span class="hp-name">${mainText}</span>
-                    </div>
-                `;
+                // বাকি ডাটা অ্যালাইন করা
+                if (otherFields.length > 0) {
+                    if (otherFields.length > 1) {
+                        let prefix = otherFields[0] + separator;
+                        let mainText = otherFields.slice(1).join(separator);
+                        itemHtml += `<span class="hp-prefix">${prefix}</span><span class="hp-name">${mainText}</span>`;
+                    } else {
+                        itemHtml += `<span class="hp-name">${otherFields[0]}</span>`;
+                    }
+                }
+                
+                htmlContent += `<div class="hp-item">${itemHtml}</div>`;
             });
             htmlContent += `</div></div>`;
         }
@@ -1694,6 +1727,7 @@ async function generateSuperPDF() {
         btn.disabled = false;
     }, 500);
 }
+
     // Mobile back button close modal
 window.addEventListener("popstate", function(event) {
 
