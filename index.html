@@ -698,7 +698,13 @@ document.getElementById("student-profile-modal").addEventListener("click", funct
         closeStudentProfile();
     }
 });
-    
+    // ফিল্টার মডালের বাইরে (ব্যাকগ্রাউন্ডে) ক্লিক করলে বন্ধ হওয়ার লজিক
+document.getElementById("filter-modal").addEventListener("click", function(e) {
+    const card = document.getElementById("filter-modal-card");
+    if (!card.contains(e.target)) {
+        closeFilterModal();
+    }
+});
     function closeStudentProfile() {
 
     const modal = document.getElementById('student-profile-modal');
@@ -1916,6 +1922,9 @@ function openFilterModal(mode) {
     modal.classList.remove('hidden');
     setTimeout(() => card.classList.remove('scale-95'), 10);
     if(window.lucide) lucide.createIcons();
+
+    // মোবাইল ব্যাক বাটনের জন্য হিস্ট্রি পুশ করা
+    history.pushState({ filterModalOpen: true }, "");
 }
 
 function closeFilterModal() { 
@@ -1923,6 +1932,11 @@ function closeFilterModal() {
     const card = document.getElementById('filter-modal-card');
     card.classList.add('scale-95');
     setTimeout(() => modal.classList.add('hidden'), 200);
+
+    // মোবাইল ব্যাক বাটনের হিস্ট্রি ক্লিন করা
+    if (history.state && history.state.filterModalOpen) {
+        history.back();
+    }
 }
 
 function addFilterRule() {
@@ -2351,12 +2365,18 @@ function loadManualData() {
         timer: 3000
     });
 }
-
-// Mobile back button close modal
+// Mobile back button close modals
 window.addEventListener("popstate", function(event) {
-    const modal = document.getElementById("student-profile-modal");
-    if (!modal.classList.contains("hidden")) {
+    // স্টুডেন্ট প্রোফাইল মডাল চেক
+    const profileModal = document.getElementById("student-profile-modal");
+    if (!profileModal.classList.contains("hidden")) {
         closeStudentProfile();
+    }
+
+    // ফিল্টার মডাল চেক
+    const filterModal = document.getElementById("filter-modal");
+    if (!filterModal.classList.contains("hidden")) {
+        closeFilterModal();
     }
 });
 /*if ("serviceWorker" in navigator) {
