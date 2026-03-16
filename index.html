@@ -1264,6 +1264,67 @@ const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d])
         renderHistoryUI(term);  
     }  
 
+    /** * ==========================================  
+     * EXPORT & DATA MANAGEMENT  
+     * ==========================================  
+     */  
+    function exportData() {  
+        const allHistory = state.historyData || [];  
+        if (allHistory.length === 0) {  
+            Swal.fire('ফাঁকা লিস্ট', 'এক্সপোর্ট করার মতো কোনো ডেটা নেই।', 'info');  
+            return;  
+        }  
+
+        let csv = "Date,Time,ID,Name(Bn),Name(En),Class,Roll\n";  
+          
+        allHistory.forEach(r => {  
+            const s = state.students[r.id] || {};  
+            const nameBn = s.nameBn ? s.nameBn.replace(/,/g, " ") : "";   
+            const nameEn = s.nameEn ? s.nameEn.replace(/,/g, " ") : "";  
+            const classBn = s.classBn ? s.classBn.replace(/,/g, " ") : "";  
+            const roll = s.roll || "";  
+              
+            csv += `"${r.dateStr}","${r.timeStr}",${r.id},${nameBn},${nameEn},${classBn},${roll}\n`;  
+        });  
+
+        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });  
+        const link = document.createElement("a");  
+        link.href = URL.createObjectURL(blob);  
+        link.download = `All_Search_History.csv`;  
+        link.click();  
+          
+        Toast.fire({ icon: 'success', title: 'ফাইল ডাউনলোড হয়েছে' });  
+    }  
+    function copyAllIds() {
+        // বর্তমান সার্চ বক্সে কিছু লেখা থাকলে সেটা অনুযায়ী ডেটা ফিল্টার করা
+        const term = document.getElementById('search-input').value.toLowerCase();
+        let filteredData = [...state.historyData];
+        
+        if(term) {
+            filteredData = filteredData.filter(record => {
+                const s = state.students[record.id];
+                if (!s) return false;
+                return s.nameBn.includes(term) || s.nameEn.toLowerCase().includes(term) || record.id.includes(term);
+            });
+        }
+        
+        // ফিল্টার করা বা মূল লিস্টের আইডিগুলো নিয়ে কমা দিয়ে যুক্ত করা
+        const ids = filteredData.map(r => r.id).join(', ');
+        
+        if(!ids) {
+            Swal.fire('ফাঁকা লিস্ট', 'কপি করার মতো কোনো আইডি নেই।', 'info');
+            return;
+        }
+
+        // ক্লিপবোর্ডে কপি করা
+        navigator.clipboard.writeText(ids).then(() => {
+            Toast.fire({ icon: 'success', title: 'সব আইডি কপি হয়েছে!' });
+        }).catch(err => {
+            console.error('Copy failed: ', err);
+            Swal.fire('ত্রুটি', 'আইডি কপি করা যায়নি!', 'error');
+        });
+    }
+
     function clearHistory() {  
         Swal.fire({  
             title: 'আপনি কি নিশ্চিত?',  
@@ -1494,316 +1555,21 @@ function addPdfColumn(type) {
     });
     renderTableColumns();
 }
-    /** * ==========================================  
-     * EXPORT & DATA MANAGEMENT (আপডেটেড: শুধু ফিল্টার করা ডাটা এক্সপোর্ট হবে)
-     * ==========================================  
-     */  
-
-    // স্ক্রিনে ফিল্টার হয়ে থাকা বর্তমান ডাটাগুলো বের করার হেল্পার ফাংশন
-    function getCurrentlyVisibleHistory() {
-        const listContainer = document.getElementById('full-history-list');
-        if (!listContainer || listContainer.innerHTML.includes('কোনো ডেটা পাওয়া যায়নি')) return [];
-        
-        const items = listContainer.querySelectorAll('div[onclick^="openStudentProfile"]');
-        let visibleHistory = [];
-        
-        items.forEach(item => {
-            const match = item.getAttribute('onclick').match(/'([^']+)'/);
-            if (match) {
-                const record = state.historyData.find(r => r.id === match[1]);
-                if (record) visibleHistory.push(record);
-            }
-        });
-        
-        return visibleHistory;
-    }
-
-    function exportData() {  
-        const allHistory = getCurrentlyVisibleHistory();  
-        if (allHistory.length === 0) {  
-            Swal.fire('ফাঁকা লিস্ট', 'এক্সপোর্ট করার মতো কোনো ডেটা নেই।', 'info');  
-            return;  
-        }  
-
-        let csv = "Date,Time,ID,Name(Bn),Name(En),Class,Roll\n";  
-          
-        allHistory.forEach(r => {  
-            const s = state.students[r.id] || {};  
-            const nameBn = s.nameBn ? s.nameBn.replace(/,/g, " ") : "";   
-            const nameEn = s.nameEn ? s.nameEn.replace(/,/g, " ") : "";  
-            const classBn = s.classBn ? s.classBn.replace(/,/g, " ") : "";  
-            const roll = s.roll || "";  
-              
-            csv += `"${r.dateStr}","${r.timeStr}",${r.id},${nameBn},${nameEn},${classBn},${roll}\n`;  
-        });  
-
-        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });  
-        const link = document.createElement("a");  
-        link.href = URL.createObjectURL(blob);  
-        link.download = `Filtered_Search_History.csv`;  
-        link.click();  
-          
-        Toast.fire({ icon: 'success', title: 'ফাইল ডাউনলোড হয়েছে' });  
-    }  
-
-    function copyAllIds() {
-        const allHistory = getCurrentlyVisibleHistory();
-        const ids = allHistory.map(r => r.id).join(', ');
-        
-        if(!ids) {
-            Swal.fire('ফাঁকা লিস্ট', 'কপি করার মতো কোনো আইডি নেই।', 'info');
-            return;
-        }
-
-        // ক্লিপবোর্ডে কপি করা
-        navigator.clipboard.writeText(ids).then(() => {
-            Toast.fire({ icon: 'success', title: 'সব আইডি কপি হয়েছে!' });
-        }).catch(err => {
-            console.error('Copy failed: ', err);
-            Swal.fire('ত্রুটি', 'আইডি কপি করা যায়নি!', 'error');
-        });
-    }
-
-    function clearHistory() {  
-        Swal.fire({  
-            title: 'আপনি কি নিশ্চিত?',  
-            text: "সম্পূর্ণ হিস্ট্রি রেকর্ড মুছে যাবে! এটি আর ফিরে পাওয়া যাবে না।",  
-            icon: 'warning',  
-            showCancelButton: true,  
-            confirmButtonColor: '#d33',  
-            cancelButtonColor: '#3085d6',  
-            confirmButtonText: 'হ্যাঁ, মুছুন',  
-            cancelButtonText: 'বাতিল'  
-        }).then((result) => {  
-            if (result.isConfirmed) {  
-                state.historyData = [];  
-                saveHistoryData();  
-                Swal.fire('মুছে ফেলা হয়েছে!', 'সকল অনুসন্ধান রেকর্ড খালি করা হয়েছে।', 'success');  
-            }  
-        });  
-    }  
-
-    function factoryReset() {  
-        Swal.fire({  
-            title: 'ফ্যাক্টরি রিসেট!',  
-            text: "সমস্ত স্টুডেন্ট ডেটা এবং অনুসন্ধানের রেকর্ড স্থায়ীভাবে মুছে যাবে।",  
-            icon: 'error',  
-            showCancelButton: true,  
-            confirmButtonColor: '#d33',  
-            cancelButtonColor: '#3085d6',  
-            confirmButtonText: 'রিসেট করুন',  
-            cancelButtonText: 'বাতিল'  
-        }).then((result) => {  
-            if (result.isConfirmed) {  
-                localStorage.clear();  
-                window.location.reload();  
-            }  
-        });  
-    }  
-
-    const Toast = Swal.mixin({  
-        toast: true,  
-        position: 'top-end',  
-        showConfirmButton: false,  
-        timer: 3000,  
-        timerProgressBar: true,  
-        didOpen: (toast) => {  
-            toast.addEventListener('mouseenter', Swal.stopTimer)  
-            toast.addEventListener('mouseleave', Swal.resumeTimer)  
-        }  
-    });  
-
-/**
- * ==========================================
- * NEXT-LEVEL PDF GENERATOR MODULE
- * ==========================================
- */
-
-let pdfConfig = {
-    format: 'table', // 'table' or 'plain'
-    tableColumns: [
-        { id: 'col1', type: 'data', field: 'serial', label: 'ক্র.নং', width: '10', default: '' },
-        { id: 'col2', type: 'data', field: 'nameBn', label: 'শিক্ষার্থীর নাম', width: '40', default: '' },
-        { id: 'col3', type: 'data', field: 'roll', label: 'রোল', width: '15', default: '' },
-        { id: 'col4', type: 'data', field: 'id', label: 'আইডি', width: '35', default: '' }
-    ]
-};
-
-function openPdfModal() {
-    const term = document.getElementById('search-input')?.value || '';
-    if(state.historyData.length === 0) {
-        Swal.fire('ফাঁকা লিস্ট', 'পিডিএফ করার মতো কোনো ডেটা নেই!', 'info');
-        return;
-    }
-    
-    document.getElementById('pdf-export-modal').classList.remove('hidden');
-    setTimeout(() => {
-        document.getElementById('pdf-export-modal').classList.remove('opacity-0');
-        document.getElementById('pdf-modal-card').classList.remove('scale-95');
-    }, 10);
-    
-    renderTableColumns();
-    renderPlainFields(); // ফিল্ড বাটনগুলো লোড করবে
-}
-
-
-function closePdfModal() {
-    document.getElementById('pdf-export-modal').classList.add('opacity-0');
-    document.getElementById('pdf-modal-card').classList.add('scale-95');
-    setTimeout(() => {
-        document.getElementById('pdf-export-modal').classList.add('hidden');
-    }, 300);
-}
-
-function setPdfFormat(format) {
-    pdfConfig.format = format;
-    const isTable = format === 'table';
-    
-    // UI Styling logic for Tabs
-    document.getElementById('settings-table').classList.toggle('hidden', !isTable);
-    document.getElementById('settings-plain').classList.toggle('hidden', isTable);
-    
-    document.getElementById('btn-fmt-table').className = isTable ? "border-2 border-indigo-600 bg-indigo-50 rounded-2xl p-4 text-center transition-all relative overflow-hidden" : "border-2 border-slate-200 bg-white rounded-2xl p-4 text-center hover:border-indigo-300 transition-all relative overflow-hidden";
-    document.getElementById('check-fmt-table').className = isTable ? "absolute top-2 right-2 text-indigo-600" : "absolute top-2 right-2 text-transparent";
-    
-    document.getElementById('btn-fmt-plain').className = !isTable ? "border-2 border-indigo-600 bg-indigo-50 rounded-2xl p-4 text-center transition-all relative overflow-hidden" : "border-2 border-slate-200 bg-white rounded-2xl p-4 text-center hover:border-indigo-300 transition-all relative overflow-hidden";
-    document.getElementById('check-fmt-plain').className = !isTable ? "absolute top-2 right-2 text-indigo-600" : "absolute top-2 right-2 text-transparent";
-    
-    document.getElementById('icon-fmt-plain').className = !isTable ? "fa-solid fa-list text-3xl text-indigo-500 mb-2" : "fa-solid fa-list text-3xl text-slate-400 mb-2";
-    document.getElementById('title-fmt-plain').className = !isTable ? "font-bold text-slate-800" : "font-bold text-slate-600";
-}
-
-let plainFieldsOrder = ['serial', 'roll', 'nameBn'];
-const plainFieldLabels = {
-    serial: 'সিরিয়াল', roll: 'রোল', nameBn: 'নাম (বাংলা)', nameEn: 'নাম (ইংরেজি)', 
-    classBn: 'শ্রেণী', id: 'আইডি', gender: 'লিঙ্গ', BloodGroup: 'রক্তের গ্রুপ', 
-    FatherNameBn: 'পিতা', MotherNameBn: 'মাতা', WhatsApp: 'মোবাইল'
-};
-
-
-function renderPlainFields() {
-    const container = document.getElementById('dynamic-plain-fields');
-    if(!container) return;
-    container.innerHTML = '';
-    plainFieldsOrder.forEach((field, index) => {
-        container.innerHTML += `
-            <div class="bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-700 flex items-center gap-1.5 shadow-sm">
-                <span>${index + 1}. ${plainFieldLabels[field] || field}</span>
-                <button onclick="removePlainField(${index})" class="text-red-400 hover:text-red-600 ml-1 outline-none"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-        `;
-    });
-}
-
-function addPlainField(val) {
-    if(!val) return;
-    if(!plainFieldsOrder.includes(val)) {
-        plainFieldsOrder.push(val); // শেষে যোগ হবে
-    }
-    document.getElementById('plain-field-selector').value = '';
-    renderPlainFields();
-}
-
-function removePlainField(index) {
-    plainFieldsOrder.splice(index, 1);
-    renderPlainFields();
-}
-
-    
-function updateCol(index, key, value) { pdfConfig.tableColumns[index][key] = value; }
-function removePdfColumn(index) { pdfConfig.tableColumns.splice(index, 1); renderTableColumns(); }
-// Helper to determine gender from varying database keys intelligently
-// Helper to determine gender as Chhatro/Chhatri
-function guessGender(student) {
-    const g = student.Gender || student.gender || student.Sex || student.sex || student.লিঙ্গ || '';
-    const str = g.toString().toLowerCase().trim();
-    if(str === 'male' || str === 'm' || str === 'ছেলে' || str === 'ছাত্র' || str === 'বালক') return 'ছাত্র';
-    if(str === 'female' || str === 'f' || str === 'মেয়ে' || str === 'ছাত্রী' || str === 'বালিকা') return 'ছাত্রী';
-    return 'অজানা';
-}
-
-// Helper to calculate age from DOB
-function calculateAge(dobStr) {
-    if(!dobStr) return null;
-    const dob = new Date(dobStr);
-    if(isNaN(dob.getTime())) return null;
-    const ageDifMs = Date.now() - dob.getTime();
-    const ageDate = new Date(ageDifMs);
-    return Math.abs(ageDate.getUTCFullYear() - 1970);
-}
-
-
-function renderTableColumns() {
-    const container = document.getElementById('pdf-columns-container');
-    container.innerHTML = '';
-    
-    // ডাটাবেসের সাধারণ ফিল্ডগুলোর লিস্ট (ড্রপডাউনের জন্য)
-        const fieldOptions = [
-        {val: 'serial', text: 'ক্রমিক নং (Serial)'},
-        {val: 'id', text: 'আইডি (ID)'},
-        {val: 'roll', text: 'রোল (Roll)'},
-        {val: 'nameBn', text: 'নাম (বাংলা)'},
-        {val: 'nameEn', text: 'নাম (ইংরেজি)'},
-        {val: 'classBn', text: 'শ্রেণী (Class)'},
-        {val: 'gender', text: 'লিঙ্গ (Gender)'},
-        {val: 'BloodGroup', text: 'রক্তের গ্রুপ (Blood)'}, 
-        {val: 'father', text: 'পিতার নাম (Father)'},
-        {val: 'mother', text: 'মাতার নাম (Mother)'},
-        {val: 'session', text: 'সেশন (Session)'},
-        {val: 'address', text: 'ঠিকানা (Address)'}
-    ];
-
-
-    pdfConfig.tableColumns.forEach((col, index) => {
-        
-        // ডাইনামিক সিলেক্ট অপশন তৈরি
-        let selectHtml = `<select onchange="updateCol(${index}, 'field', this.value)" class="w-full bg-indigo-50 border border-indigo-100 text-[11px] text-indigo-700 mt-1 px-2 py-1.5 rounded outline-none font-bold cursor-pointer">`;
-        fieldOptions.forEach(opt => {
-            selectHtml += `<option value="${opt.val}" ${col.field === opt.val ? 'selected' : ''}>${opt.text}</option>`;
-        });
-        selectHtml += `</select>`;
-
-        container.innerHTML += `
-            <div class="flex items-center gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-                <div class="flex-1">
-                    <input type="text" value="${col.label}" onchange="updateCol(${index}, 'label', this.value)" placeholder="কলামের নাম (প্রিন্টে যা দেখাবে)" class="w-full bg-white border border-slate-300 rounded text-xs px-2 py-1.5 outline-none font-bold text-slate-800 focus:border-indigo-500">
-                    ${col.type === 'data' 
-                        ? selectHtml
-                        : `<input type="text" value="${col.default}" onchange="updateCol(${index}, 'default', this.value)" placeholder="ডিফল্ট ভ্যালু (যেমন: স্বাক্ষর)" class="w-full bg-white border border-slate-200 mt-1 rounded text-[11px] px-2 py-1.5 outline-none text-slate-500">`
-                    }
-                </div>
-                <div class="w-16">
-                    <div class="relative">
-                        <input type="number" value="${col.width}" onchange="updateCol(${index}, 'width', this.value)" class="w-full bg-white border border-slate-300 rounded text-xs px-2 py-1.5 outline-none pr-5 text-center font-bold focus:border-indigo-500">
-                        <span class="absolute right-1.5 top-1.5 text-xs text-slate-400">%</span>
-                    </div>
-                </div>
-                <button onclick="removePdfColumn(${index})" class="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors shadow-sm"><i class="fa-solid fa-trash-can"></i></button>
-            </div>
-        `;
-    });
-}
-
-function addPdfColumn(type) {
-    pdfConfig.tableColumns.push({
-        id: 'col' + Date.now(),
-        type: type,
-        field: type === 'data' ? 'nameBn' : '', // ডিফল্ট হিসেবে 'নাম' সিলেক্ট থাকবে
-        label: type === 'data' ? 'নতুন কলাম' : 'ফাঁকা কলাম',
-        width: '15',
-        default: ''
-    });
-    renderTableColumns();
-}
-
 async function generateSuperPDF() {
     const btn = document.getElementById('btn-generate-pdf');
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> প্রস্তুত হচ্ছে...';
     btn.disabled = true;
 
-    // স্ক্রিনে যে ডাটা দেখা যাচ্ছে শুধু সেটুকুই পিডিএফ এর জন্য নেওয়া হচ্ছে
-    const visibleHistory = getCurrentlyVisibleHistory();
-    let dataToExport = visibleHistory.map(record => ({ ...record, ...state.students[record.id] }));
+    const term = document.getElementById('search-input')?.value.toLowerCase() || '';
+    let dataToExport = [...state.historyData].map(record => ({ ...record, ...state.students[record.id] }));
+    
+    if(term) {
+        dataToExport = dataToExport.filter(s => 
+            (s.nameBn && s.nameBn.includes(term)) || 
+            (s.nameEn && s.nameEn.toLowerCase().includes(term)) || 
+            (s.id && s.id.includes(term))
+        );
+    }
 
     const title = e2b(document.getElementById('pdf-title').value);
     const subtitle = e2b(document.getElementById('pdf-subtitle').value);
@@ -1839,7 +1605,7 @@ async function generateSuperPDF() {
     `;
 
     if (pdfConfig.format === 'table') {
-        // --- Table View ---
+        // --- Table View (অপরিবর্তিত আছে) ---
         htmlContent += `
             ${title ? `<h1 style="text-align: center; font-size: 26px; font-family: 'Anek Bangla', sans-serif; font-weight: 800; margin-bottom: ${subtitle ? '5px' : '20px'}; color: #000;">${title}</h1>` : ''}
             ${subtitle ? `<h2 style="text-align: center; font-size: 18px; font-family: 'Noto Serif Bengali', serif; font-weight: 600; margin-bottom: 25px; color: #333;">${subtitle}</h2>` : ''}
@@ -1888,7 +1654,7 @@ async function generateSuperPDF() {
             </div>`;
     } 
     else {
-        // --- Plain View ---
+        // --- Plain View (নতুন লজিক) ---
         const groupBy = document.getElementById('pdf-group-by').value;
         const cols = parseInt(document.getElementById('pdf-plain-cols').value) || 3;
         const separator = document.getElementById('pdf-separator').value || ' - ';
@@ -1910,13 +1676,14 @@ async function generateSuperPDF() {
                 } else if (groupBy === 'gender') {
                     keyVal = guessGender(s);
                } else {
-                    let val = s[groupBy];
-                    if (val === undefined || val === null || val === '') {
-                        keyVal = (groupBy === 'BloodGroup') ? 'গ্রুপ অজানা' : 'অন্যান্য';
-                    } else {
-                        keyVal = val;
-                    }
-                }
+    // সরাসরি ব্যাকএন্ডের ফিল্ড নেম থেকে ডাটা নেবে
+    let val = s[groupBy];
+    if (val === undefined || val === null || val === '') {
+        keyVal = (groupBy === 'BloodGroup') ? 'গ্রুপ অজানা' : 'অন্যান্য';
+    } else {
+        keyVal = val;
+    }
+}
 
                 if(!groupedData[keyVal]) groupedData[keyVal] = [];
                 groupedData[keyVal].push(s);
@@ -1970,17 +1737,19 @@ async function generateSuperPDF() {
                 let mainParts = [];
 
                 plainFieldsOrder.forEach(f => {
-                    let val = '';
-                    if (f === 'serial') val = e2b(serialCount) + '.'; 
-                    else if (f === 'gender') val = guessGender(s);
-                    else val = s[f] || s[f.toLowerCase()] || ''; // সরাসরি ফিল্ড নেম কল করবে
+    let val = '';
+    if (f === 'serial') val = e2b(serialCount) + '.'; 
+    else if (f === 'gender') val = guessGender(s);
+    else val = s[f] || s[f.toLowerCase()] || ''; // সরাসরি ফিল্ড নেম কল করবে
 
                     if (val) {
                         val = (f !== 'serial') ? e2b(val) : val; 
                         
                         if (f === 'serial') {
+                            // সিরিয়াল সবসময় নির্দিষ্ট উইডথ পাবে
                             prefixHtml += `<span class="hp-serial">${val}</span>`;
                         } else if (f === 'roll' && !mainParts.length && !hasSerial) {
+                            // সিরিয়াল না থাকলে রোল নিজে নির্দিষ্ট উইডথ পাবে (সেপারেটরসহ)
                             prefixHtml += `<span class="hp-roll">${val}${separator}</span>`;
                         } else {
                             mainParts.push(val);
