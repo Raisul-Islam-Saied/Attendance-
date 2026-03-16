@@ -1417,6 +1417,7 @@ function calculateAge(dobStr) {
 // ইংরেজি সংখ্যায় রূপান্তর
 const toEn = (n) => String(n).replace(/[০-৯]/g, d => "0123456789"["০১২৩৪৫৬৭৮৯".indexOf(d)]);
 
+    // ১. এই ফাংশনটি রিপ্লেস করুন (টেবিল রেন্ডার করার জন্য, ড্রপডাউন সহ)
 function renderTableColumns() {
     const container = document.getElementById('pdf-columns-container');
     if(!container) return;
@@ -1446,7 +1447,7 @@ function renderTableColumns() {
         container.innerHTML += `
             <div class="flex items-center gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
                 <div class="flex-1">
-                    <input type="text" value="${col.label}" onchange="updateCol(${index}, 'label', this.value)" placeholder="কলামের নাম" class="w-full bg-white border border-slate-300 rounded text-xs px-2 py-1.5 outline-none font-bold text-slate-800">
+                    <input type="text" value="${col.label}" onchange="updateCol(${index}, 'label', this.value)" placeholder="কলামের নাম" class="w-full bg-white border border-slate-300 rounded text-xs px-2 py-1.5 outline-none font-bold text-slate-800 focus:border-indigo-500">
                     ${col.type === 'data' 
                         ? selectHtml
                         : `<input type="text" value="${col.default}" onchange="updateCol(${index}, 'default', this.value)" placeholder="ডিফল্ট ভ্যালু (যেমন: স্বাক্ষর)" class="w-full bg-white border border-slate-200 mt-1 rounded text-[11px] px-2 py-1.5 outline-none text-slate-500">`
@@ -1454,7 +1455,7 @@ function renderTableColumns() {
                 </div>
                 <div class="w-16">
                     <div class="relative">
-                        <input type="number" value="${col.width}" onchange="updateCol(${index}, 'width', this.value)" class="w-full bg-white border border-slate-300 rounded text-xs px-2 py-1.5 outline-none pr-5 text-center font-bold font-sans">
+                        <input type="number" value="${col.width}" onchange="updateCol(${index}, 'width', this.value)" class="w-full bg-white border border-slate-300 rounded text-xs px-2 py-1.5 outline-none pr-5 text-center font-bold focus:border-indigo-500">
                         <span class="absolute right-1.5 top-1.5 text-xs text-slate-400">%</span>
                     </div>
                 </div>
@@ -1464,6 +1465,7 @@ function renderTableColumns() {
     });
 }
 
+// ২. এই ফাংশনটি রিপ্লেস করুন (নতুন কলাম যুক্ত করার জন্য)
 function addPdfColumn(type) {
     pdfConfig.tableColumns.push({
         id: 'col' + Date.now(),
@@ -1476,6 +1478,7 @@ function addPdfColumn(type) {
     renderTableColumns();
 }
 
+// ৩. এই বড় ফাংশনটি রিপ্লেস করুন (প্লেন ভিউ এর ডিজাইন আপডেট সহ)
 async function generateSuperPDF() {
     const btn = document.getElementById('btn-generate-pdf');
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> প্রস্তুত হচ্ছে...';
@@ -1485,10 +1488,7 @@ async function generateSuperPDF() {
     let dataToExport = [...state.historyData].map(record => ({ ...record, ...state.students[record.id] }));
     
     if(term) {
-        dataToExport = dataToExport.filter(s => 
-            (s.nameBn && s.nameBn.includes(term)) || 
-            (s.id && s.id.includes(term))
-        );
+        dataToExport = dataToExport.filter(s => (s.nameBn && s.nameBn.includes(term)) || (s.id && s.id.includes(term)));
     }
 
     const title = e2b(document.getElementById('pdf-title').value);
@@ -1508,9 +1508,9 @@ async function generateSuperPDF() {
             
             /* অ্যালাইনমেন্ট ফিক্স */
             .hp-item { display: flex; align-items: baseline; gap: 6px; padding: 2.2px 0; font-size: 18px; page-break-inside: avoid; }
-            .hp-serial { font-family: 'Noto Serif Bengali', monospace; font-weight: 700; font-size: 18px; color: #000; flex-shrink: 0; min-width: 25px; text-align: left; }
-            .hp-prefix { font-family: 'Noto Serif Bengali', monospace; font-weight: 700; font-size: 18px; color: #000; flex-shrink: 0; min-width: 45px; text-align: left; }
-            .hp-name { font-weight: 600; color: #111; font-size: 18px; line-height: 1.3; flex-grow: 1; word-wrap: break-word; }
+            .hp-serial { font-weight: 700; min-width: 25px; text-align: left; }
+            .hp-prefix { font-weight: 700; min-width: 45px; text-align: left; }
+            .hp-name { font-weight: 600; color: #111; line-height: 1.3; flex-grow: 1; }
             
             .hp-footer-summary { margin-top: 25px; border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 10px; text-align: center; page-break-inside: avoid; }
             .official-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-family: 'Noto Serif Bengali', serif; }
@@ -1523,8 +1523,8 @@ async function generateSuperPDF() {
     `;
 
     if (pdfConfig.format === 'table') {
-        htmlContent += `${title ? `<h1 style="text-align: center; font-size: 26px; font-weight: 800; margin-bottom: ${subtitle ? '5px' : '20px'};">${title}</h1>` : ''}
-            ${subtitle ? `<h2 style="text-align: center; font-size: 18px; font-weight: 600; margin-bottom: 25px;">${subtitle}</h2>` : ''}`;
+        htmlContent += `${title ? `<h1 style="text-align: center; font-size: 26px; font-weight: 800; margin-bottom: ${subtitle ? '5px':'20px'};">${title}</h1>`:''}
+            ${subtitle ? `<h2 style="text-align: center; font-size: 18px; font-weight: 600; margin-bottom: 25px;">${subtitle}</h2>`:''}`;
         const rowHeight = document.getElementById('pdf-row-height').value;
         const pd = rowHeight === 'py-1' ? '6px 8px' : rowHeight === 'py-4' ? '14px 8px' : '10px 8px';
         htmlContent += `<table class="official-table"><thead><tr>`;
@@ -1536,17 +1536,9 @@ async function generateSuperPDF() {
         dataToExport.forEach((s, index) => {
             htmlContent += `<tr>`;
             pdfConfig.tableColumns.forEach(col => {
+                let cellData = (col.type === 'blank') ? e2b(col.default || '') : (col.field === 'serial' ? e2b(index + 1) : e2b(s[col.field] || s[col.field.toLowerCase()] || '-'));
+                if(col.field === 'gender') cellData = guessGender(s);
                 let align = (col.field === 'serial' || col.field === 'roll' || col.type === 'blank') ? 'center' : 'left';
-                let cellData = '';
-                if(col.type === 'blank') {
-                    cellData = e2b(col.default || '');
-                } else if(col.field === 'serial') {
-                    cellData = e2b(index + 1);
-                } else {
-                    let rawVal = s[col.field] || s[col.field.toLowerCase()] || s[col.field.charAt(0).toUpperCase() + col.field.slice(1)] || '-';
-                    if (col.field === 'gender') rawVal = guessGender(s);
-                    cellData = e2b(rawVal);
-                }
                 htmlContent += `<td style="padding: ${pd}; text-align: ${align};">${cellData}</td>`;
             });
             htmlContent += `</tr>`;
@@ -1559,7 +1551,7 @@ async function generateSuperPDF() {
         const cbElements = document.querySelectorAll('.plain-field-cb:checked');
         const fields = Array.from(cbElements).map(cb => cb.value);
 
-        if(title || subtitle) htmlContent += `<div class="hp-header">${title ? `<div class="hp-hall-no">${title}</div>` : ''}${subtitle ? `<div class="hp-exam">${subtitle}</div>` : ''}</div>`;
+        if(title || subtitle) htmlContent += `<div class="hp-header">${title?`<div class="hp-hall-no">${title}</div>`:''}${subtitle?`<div class="hp-exam">${subtitle}</div>`:''}</div>`;
 
         let groupedData = {};
         dataToExport.forEach(s => {
@@ -1585,19 +1577,13 @@ async function generateSuperPDF() {
             htmlContent += `<div class="hp-grid" style="column-count: ${cols};">`;
             groupStudents.forEach((s, idx) => {
                 let hasSl = fields.includes('serial'), parts = [];
-                fields.forEach(f => { 
-                    if(f!=='serial') {
-                        let v = (f==='gender')?guessGender(s):(f==='age'?calculateAge(s['Age']||s['age']||s['DOB']):(s[f]||s[f.toLowerCase()]||'-'));
-                        parts.push(e2b(v));
-                    }
-                });
+                fields.forEach(f => { if(f!=='serial') parts.push(e2b(f==='gender'?guessGender(s):(f==='age'?calculateAge(s['Age']||s['age']||s['DOB']):(s[f]||s[f.toLowerCase()]||'-')))); });
                 let pfx = parts.length > 1 ? parts[0] + separator : "", main = parts.length > 1 ? parts.slice(1).join(separator) : (parts[0] || "");
                 htmlContent += `<div class="hp-item">${hasSl?`<span class="hp-serial">${e2b(idx+1)}.</span>`:''}${pfx?`<span class="hp-prefix">${pfx}</span>`:''}<span class="hp-name">${main}</span></div>`;
             });
             htmlContent += `</div>${groupBy?'</div>':''}`;
         });
     }
-    
     let tb=0, tg=0; dataToExport.forEach(s => { let g = guessGender(s); if(g==='ছাত্র') tb++; if(g==='ছাত্রী') tg++; });
     htmlContent += `<div class="hp-footer-summary"><div style="font-size: 22px; font-weight: 800;">সর্বমোট শিক্ষার্থী: ${e2b(dataToExport.length)} জন</div><div style="font-size: 18px; font-weight: 600;">মোট ছাত্র: ${e2b(tb)} জন | মোট ছাত্রী: ${e2b(tg)} জন</div></div></div>`;
 
