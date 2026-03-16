@@ -1469,8 +1469,7 @@ openPdfModal = function() {
     renderPlainFields();
 }
 
-
-async function generateSuperPDF() {
+    async function generateSuperPDF() {
     const btn = document.getElementById('btn-generate-pdf');
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> প্রস্তুত হচ্ছে...';
     btn.disabled = true;
@@ -1505,7 +1504,7 @@ async function generateSuperPDF() {
             
             .hp-grid { column-gap: 20px; }
             
-            /* এখানে অ্যালাইনমেন্ট ফিক্স করা হয়েছে */
+            /* এখানে শুধু অ্যালাইনমেন্ট ফিক্স করা হয়েছে এবং সিরিয়াল যোগ করা হয়েছে */
             .hp-item { display: flex; align-items: baseline; gap: 6px; padding: 2.5px 0; font-size: 18px; page-break-inside: avoid; }
             .hp-serial { font-family: 'Noto Serif Bengali', monospace; font-weight: 700; font-size: 18px; color: #000; flex-shrink: 0; min-width: 25px; text-align: left; }
             .hp-prefix { font-family: 'Noto Serif Bengali', monospace; font-weight: 700; font-size: 18px; color: #000; flex-shrink: 0; min-width: 45px; text-align: left; }
@@ -1578,15 +1577,14 @@ async function generateSuperPDF() {
         `;
     } 
     
-    // --- PLAIN FORMAT LOGIC (SMART FIELDS WITH SERIAL) ---
+    // --- PLAIN FORMAT LOGIC (HALL PLAN EXACT MATCH) ---
     else {
         const groupBy = document.getElementById('pdf-group-by').value;
         const cols = parseInt(document.getElementById('pdf-plain-cols').value) || 3;
         const separator = document.getElementById('pdf-separator').value || ' - ';
         
-        // এখানে চেকবক্সের বদলে আপনার দেওয়া "pdf-plain-fields" ইনপুট থেকে ফিল্ড নেওয়া হচ্ছে
-        const fieldsRaw = document.getElementById('pdf-plain-fields').value;
-        const fields = fieldsRaw.split(',').map(f => f.trim()).filter(f => f);
+        const cbElements = document.querySelectorAll('.plain-field-cb:checked');
+        const fields = Array.from(cbElements).map(cb => cb.value);
 
         if(title || subtitle) {
             htmlContent += `<div class="hp-header">`;
@@ -1624,7 +1622,7 @@ async function generateSuperPDF() {
             if (b === 'অন্যান্য' || b === 'অজানা') return -1;
             
             if (groupBy === 'age' || groupBy === 'roll') {
-                return parseInt(toEn(a)) - parseInt(toEn(b));
+                return parseInt(toEn(a)) - parseInt(toEn(b)); 
             }
             if (groupBy === 'classBn') {
                 const classOrderMap = { "প্লে": 1, "নার্সারি": 2, "কেজি": 3, "১ম": 4, "২য়": 5, "৩য়": 6, "৪র্থ": 7, "৫ম": 8, "৬ষ্ঠ": 9, "৭ম": 10, "৮ম": 11, "৯ম": 12, "১০ম": 13 };
@@ -1670,6 +1668,7 @@ async function generateSuperPDF() {
 
             htmlContent += `<div class="hp-grid" style="column-count: ${cols};">`;
             
+            // এখানে সিরিয়াল এবং অ্যালাইনমেন্ট লজিকটি আপনার কোডের ভেতরে বসানো হলো
             groupStudents.forEach((s, index) => {
                 let hasSerial = false;
                 let otherFields = [];
@@ -1692,12 +1691,10 @@ async function generateSuperPDF() {
                 
                 let itemHtml = '';
                 
-                // সিরিয়াল থাকলে ডট যোগ হবে
                 if (hasSerial) {
                     itemHtml += `<span class="hp-serial">${e2b(index + 1)}.</span>`;
                 }
                 
-                // বাকি ডাটা অ্যালাইন করা
                 if (otherFields.length > 0) {
                     if (otherFields.length > 1) {
                         let prefix = otherFields[0] + separator;
