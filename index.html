@@ -1247,38 +1247,101 @@ const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d])
 const timeOnly = parts[0] + ':' + parts[1] + ' ' + record.timeStr.split(' ')[1];
 const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
             const dateBn = record.dateStr.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
-
-                   html += `  
-            <div onclick="openStudentProfile('${record.id}')" class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3 fade-in cursor-pointer hover:bg-slate-50 active:scale-[0.98] transition-all">  
-                <img src="${img}" class="w-12 h-12 rounded-full object-cover border-2 border-indigo-50" onerror="this.src='https://ui-avatars.com/api/?name=S&background=random'">  
-                <div class="flex-1 min-w-0">  
-                    <h4 class="font-bold text-slate-800 text-sm truncate">${s.nameBn}</h4>  
-                    <div class="flex items-center gap-2 mt-1 text-xs text-slate-500">  
-                        <span class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">আইডি: ${record.id}</span>  
-                        <span>রোল: ${s.roll || '-'}</span>  
-                        <span class="hidden sm:inline">• শ্রেণী: ${s.classBn || '-'}</span>
+        html += `  
+            <div class="relative overflow-hidden rounded-2xl mb-3 shadow-sm border border-slate-100 bg-red-500">
+                <div onclick="deleteHistoryItem(event, '${record.id}', ${record.timestamp})" class="absolute inset-y-0 right-0 w-[80px] flex flex-col items-center justify-center text-white cursor-pointer active:bg-red-600 transition-colors">
+                    <i class="fa-solid fa-trash-can text-xl mb-1"></i>
+                    <span class="text-[10px] font-bold">মুছুন</span>
+                </div>
+                
+                <div onclick="openStudentProfile('${record.id}')" class="relative bg-white p-3.5 flex items-center gap-4 cursor-pointer swipeable-card w-full h-full z-10 transition-transform">  
+                    <img src="${img}" class="w-12 h-12 rounded-full object-cover border-2 border-indigo-50 shrink-0 pointer-events-none" onerror="this.src='https://ui-avatars.com/api/?name=S&background=random'">  
+                    <div class="flex-1 min-w-0 pointer-events-none">  
+                        <h4 class="font-bold text-slate-800 text-sm truncate">${s.nameBn}</h4>  
+                        <div class="flex items-center gap-2 mt-1 text-xs text-slate-500">  
+                            <span class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">আইডি: ${record.id}</span>  
+                            <span>রোল: ${s.roll || '-'}</span>  
+                            <span class="hidden sm:inline">• শ্রেণী: ${s.classBn || '-'}</span>
+                        </div>  
+                    </div>  
+                    <div class="text-[10px] font-medium text-slate-400 text-right flex flex-col justify-center pointer-events-none shrink-0">  
+                        <span class="text-xs text-slate-600 font-bold"><i class="fa-regular fa-clock mr-0.5"></i> ${timeBn}</span>
+                        <span>${dateBn}</span>
                     </div>  
                 </div>  
-                <div class="text-[10px] font-medium text-slate-400 text-right flex flex-col justify-between items-end h-full py-0.5">  
-                    <div>
-                        <span class="text-xs text-slate-600 font-bold"><i class="fa-regular fa-clock mr-0.5"></i> ${timeBn}</span>
-                        <span class="block mt-0.5">${dateBn}</span>
-                    </div>
-                    <button onclick="deleteHistoryItem(event, '${record.id}', ${record.timestamp})" class="mt-1.5 text-red-500 bg-red-50 hover:bg-red-500 hover:text-white p-1.5 rounded-lg transition-colors active:scale-90" title="হিস্ট্রি থেকে মুছুন">
-                        <i class="fa-solid fa-trash-can text-xs"></i>
-                    </button>
-                </div>  
-            </div>  
+            </div>
         `;  
-  
         });  
         listContainer.innerHTML = html;  
+                initSwipeToDelete(); // ডাটা রেন্ডার হওয়ার পর সোয়াইপ ইঞ্জিন চালু হবে
+
     }  
 
     function filterHistory() {  
         const term = document.getElementById('search-input').value;  
         renderHistoryUI(term);  
     }  
+    function initSwipeToDelete() {
+    const cards = document.querySelectorAll('.swipeable-card');
+    
+    cards.forEach(card => {
+        let startX = 0;
+        let currentX = 0;
+        let isDragging = false;
+        
+        // Touch Events for Mobile Swipe
+        card.addEventListener('touchstart', handleStart, {passive: true});
+        card.addEventListener('touchmove', handleMove, {passive: true});
+        card.addEventListener('touchend', handleEnd);
+        
+        function handleStart(e) {
+            startX = e.touches[0].clientX;
+            isDragging = true;
+            card.style.transition = 'none'; // সোয়াইপ করার সময় স্মুথ রাখার জন্য
+            
+            // একটি সোয়াইপ করলে অন্য কোনো কার্ড ওপেন থাকলে তা বন্ধ হয়ে যাবে
+            cards.forEach(c => {
+                if (c !== card && c.dataset.open === "true") {
+                    c.style.transform = 'translateX(0px)';
+                    c.dataset.open = "false";
+                }
+            });
+        }
+        
+        function handleMove(e) {
+            if (!isDragging) return;
+            const x = e.touches[0].clientX;
+            const deltaX = x - startX;
+            
+            // শুধু বাম দিকে সোয়াইপ (সর্বোচ্চ -80px)
+            if (deltaX < 0 && card.dataset.open !== "true") {
+                currentX = Math.max(deltaX, -80);
+                card.style.transform = `translateX(${currentX}px)`;
+            } else if (deltaX > 0 && card.dataset.open === "true") {
+                // ওপেন থাকা অবস্থায় ডান দিকে সোয়াইপ করে বন্ধ করা
+                currentX = Math.min(-80 + deltaX, 0);
+                card.style.transform = `translateX(${currentX}px)`;
+            }
+        }
+        
+        function handleEnd(e) {
+            isDragging = false;
+            card.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
+            
+            // যদি অর্ধেক এর বেশি সোয়াইপ হয়, তবে ডিলিট বাটন পুরোপুরি ওপেন হয়ে যাবে
+            if (currentX < -40) {
+                card.style.transform = 'translateX(-80px)';
+                card.dataset.open = "true";
+                currentX = -80;
+            } else {
+                card.style.transform = 'translateX(0px)';
+                card.dataset.open = "false";
+                currentX = 0;
+            }
+        }
+    });
+}
+
 function deleteHistoryItem(event, studentId, timestamp) {
     // বাটনে ক্লিক করলে যেন ভুলে প্রোফাইল ওপেন না হয়ে যায়, সেজন্য ইভেন্ট স্টপ করা
     event.stopPropagation();
