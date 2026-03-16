@@ -1475,7 +1475,6 @@ async function generateSuperPDF() {
         
         if (groupBy) {
             dataToExport.forEach(s => {
-                // Try to find the exact key, or fallback to variations
                 const keyVal = s[groupBy] || s[groupBy.toLowerCase()] || s[groupBy.charAt(0).toUpperCase() + groupBy.slice(1)] || 'অন্যান্য';
                 if(!groupedData[keyVal]) groupedData[keyVal] = [];
                 groupedData[keyVal].push(s);
@@ -1485,7 +1484,6 @@ async function generateSuperPDF() {
         }
 
         for (const [groupName, groupStudents] of Object.entries(groupedData)) {
-            // Group Header
             if (groupBy) {
                 let boysCount = 0; let girlsCount = 0;
                 groupStudents.forEach(s => {
@@ -1506,7 +1504,6 @@ async function generateSuperPDF() {
                 `;
             }
 
-            // Grid Container
             htmlContent += `<div style="display: grid; grid-template-columns: repeat(${cols}, 1fr); gap: 10px; font-size: 12px; margin-bottom: 15px;">`;
             
             groupStudents.forEach(s => {
@@ -1535,10 +1532,6 @@ async function generateSuperPDF() {
 
     htmlContent += `</div>`;
 
-    // Render to hidden container
-    const renderContainer = document.getElementById('pdf-render-container');
-    renderContainer.innerHTML = htmlContent;
-
     // PDF Export Options
     const opt = {
         margin:       10, // mm
@@ -1549,7 +1542,8 @@ async function generateSuperPDF() {
     };
 
     try {
-        await html2pdf().set(opt).from(renderContainer).save();
+        // এখানে সরাসরি htmlContent স্ট্রিংটি پاس করা হলো
+        await html2pdf().set(opt).from(htmlContent).save();
         closePdfModal();
         Toast.fire({ icon: 'success', title: 'PDF সফলভাবে সেভ হয়েছে!' });
     } catch (e) {
@@ -1558,7 +1552,6 @@ async function generateSuperPDF() {
     } finally {
         btn.innerHTML = '<i class="fa-solid fa-print"></i> পিডিএফ তৈরি করুন';
         btn.disabled = false;
-        renderContainer.innerHTML = ''; // clear memory
     }
 }
 
