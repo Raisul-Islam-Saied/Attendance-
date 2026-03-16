@@ -1799,7 +1799,7 @@ async function generateSuperPDF() {
     }, 500);
 }
     
-    // ==========================================
+// ==========================================
 // ADVANCED FILTER & MANUAL LOAD LOGIC
 // ==========================================
 let currentFilterMode = 'history'; // 'history' বা 'load'
@@ -1869,10 +1869,11 @@ function addFilterRule() {
             </div>
             <div class="w-full sm:w-1/3">
                 <select class="rule-field w-full border rounded p-1.5 text-sm font-bold text-[#005A34] outline-none" onchange="updateFilterInputUI(this)">      
-                    <option value="roll">রোল (Roll)</option>      
-                    <option value="classBn">শ্রেণি (Class)</option>      
-                    <option value="nameBn">নাম (Name)</option>      
+                    <option value="Roll">রোল (Roll)</option>      
+                    <option value="ClassBn">শ্রেণি (Class)</option>      
+                    <option value="StudentNameBn">নাম (Name)</option>      
                     <option value="id">আইডি (ID)</option>      
+                    <option value="Gender">লিঙ্গ (Gender)</option>      
                 </select>
             </div>
             <div class="w-full sm:w-1/3">
@@ -1904,7 +1905,7 @@ function updateFilterInputUI(el) {
     const valContainer = row.querySelector('.rule-value-container');
 
     if (operator === 'between') {
-        if (field === 'classBn') {
+        if (field === 'ClassBn') {
             const classes = ['প্লে', 'নার্সারি', 'কেজি', '১ম', '২য়', '৩য়', '৪র্থ', '৫ম', '৬ষ্ঠ', '৭ম', '৮ম', '৯ম', '১০ম'];
             let opts = classes.map(c => `<option value="${c}">${c}</option>`).join('');
             valContainer.innerHTML = `<div class="flex gap-2"><select class="rule-val-min w-1/2 border rounded p-1.5 text-sm outline-none">${opts}</select><select class="rule-val-max w-1/2 border rounded p-1.5 text-sm outline-none">${opts}</select></div>`;
@@ -1914,8 +1915,13 @@ function updateFilterInputUI(el) {
         return;
     }
 
-    if (field === 'classBn' && operator === '==') {
+    if (field === 'ClassBn' && operator === '==') {
         valContainer.innerHTML = `<select class="rule-val-single w-full border rounded p-1.5 text-sm font-bold text-[#005A34] outline-none"><option value="প্লে">প্লে</option><option value="নার্সারি">নার্সারি</option><option value="কেজি">কেজি</option><option value="১ম">১ম</option><option value="২য়">২য়</option><option value="৩য়">৩য়</option><option value="৪র্থ">৪র্থ</option><option value="৫ম">৫ম</option><option value="৬ষ্ঠ">৬ষ্ঠ</option><option value="৭ম">৭ম</option><option value="৮ম">৮ম</option><option value="৯ম">৯ম</option><option value="১০ম">১০ম</option></select>`;
+        return;
+    }
+
+    if (field === 'Gender' && operator === '==') {
+        valContainer.innerHTML = `<select class="rule-val-single w-full border rounded p-1.5 text-sm font-bold text-[#005A34] outline-none"><option value="Male">Male (ছেলে)</option><option value="Female">Female (মেয়ে)</option></select>`;
         return;
     }
 
@@ -1925,7 +1931,7 @@ function updateFilterInputUI(el) {
 function resetFilter() {
     document.getElementById('filter-rules-container').innerHTML = '';
     if(currentFilterMode === 'history') {
-        renderHistoryUI(); // রিসেট করলে পুরো হিস্ট্রি আবার দেখাবে
+        renderHistoryUI(); 
     }
     closeFilterModal();
     Toast.fire({ icon: 'info', title: 'ফিল্টার রিসেট করা হয়েছে' });
@@ -1950,21 +1956,37 @@ function getFilteredData(sourceData) {
             let valInputMin = item.querySelector('.rule-val-min');
             let valInputMax = item.querySelector('.rule-val-max');
 
-            let inputVal = valInput1 ? valInput1.value.trim() : '';
-            let stVal = st[field] || st[field.toLowerCase()] || "";
+            // সঠিকভাবে ভ্যালুগুলো নিচ্ছে
+            let inputVal = valInput1 ? (valInput1.value || "").trim() : '';
+            let inputMin = valInputMin ? (valInputMin.value || "").trim() : '';
+            let inputMax = valInputMax ? (valInputMax.value || "").trim() : '';
+
+            // 'nameBn' বা 'classBn' এর মতো পুরনো ডাটা কি-গুলোর সাথে কম্প্যাটিবিলিটির জন্য
+            let actualField = field;
+            if(field === 'StudentNameBn') actualField = 'nameBn';
+            else if(field === 'ClassBn') actualField = 'classBn';
+            else if(field === 'Roll') actualField = 'roll';
+            else if(field === 'Gender') actualField = 'Gender';
+
+            let stVal = st[actualField] || st[field] || st[field.toLowerCase()] || "";
+            if (field === 'Gender') stVal = st.Gender || st.gender || st.sex || "";
 
             let conditionMet = false;
             let numStVal = parseFloat(toEn(String(stVal)));
 
             if (operator === 'between') {
-                if (field === 'classBn') {
+                if (field === 'ClassBn') {
                     let stRank = classOrderMap[stVal] || 99;
-                    conditionMet = (stRank >= (classOrderMap[valInputMin.value]||0) && stRank <= (classOrderMap[valInputMax.value]||99));
+                    let minRank = classOrderMap[inputMin] || 0;
+                    let maxRank = classOrderMap[inputMax] || 99;
+                    conditionMet = (stRank >= minRank && stRank <= maxRank);
                 } else {
-                    conditionMet = (numStVal >= parseFloat(valInputMin.value) && numStVal <= parseFloat(valInputMax.value));
+                    let minNum = parseFloat(toEn(inputMin));
+                    let maxNum = parseFloat(toEn(inputMax));
+                    conditionMet = (numStVal >= minNum && numStVal <= maxNum);
                 }
             } else {
-                let isClassCmp = field === 'classBn';
+                let isClassCmp = field === 'ClassBn';
                 let val1 = isClassCmp ? (classOrderMap[stVal] || 99) : String(stVal).toLowerCase();
                 let val2 = isClassCmp ? (classOrderMap[inputVal] || 99) : inputVal.toLowerCase();
 
@@ -1983,7 +2005,7 @@ function getFilteredData(sourceData) {
 }
 
 function applyHistoryFilter() {
-    // ১. হিস্ট্রি ডাটা ম্যাপ করে ফুল স্টুডেন্ট অবজেক্ট বানানো
+    // হিস্ট্রি ডাটা থেকে সম্পূর্ণ স্টুডেন্ট অবজেক্ট বের করা
     const scannedStudents = state.historyData.map(record => {
         let studentData = state.students[record.id];
         if (studentData) {
@@ -1992,7 +2014,6 @@ function applyHistoryFilter() {
         return null;
     }).filter(s => s !== null);
     
-    // ২. ফিল্টার করা
     const filteredHistory = getFilteredData(scannedStudents);
     
     if(filteredHistory.length === 0) {
@@ -2000,7 +2021,6 @@ function applyHistoryFilter() {
         return;
     }
 
-    // ৩. UI আপডেট করা (হিস্ট্রি ট্যাবে ফিল্টার করা ডাটা দেখানো)
     const listContainer = document.getElementById('full-history-list');
     let html = '';  
     filteredHistory.forEach(record => {  
@@ -2080,7 +2100,7 @@ function loadManualData() {
     });
 }
 
-    
+
     // Mobile back button close modal
 window.addEventListener("popstate", function(event) {
 
