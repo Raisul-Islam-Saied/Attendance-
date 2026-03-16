@@ -97,7 +97,7 @@
         /* শুধু প্রিন্ট ইঞ্জিন দৃশ্যমান থাকবে */
         #print-engine { display: block !important; position: static; width: 100%; margin: 0; padding: 0; }
 
-        @page { margin: 15mm; }
+        @page { margin: 10mm 15mm; }
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; }
     }
 
@@ -1598,7 +1598,7 @@ async function generateSuperPDF() {
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;600;700;800&family=Noto+Serif+Bengali:wght@500;600;700&display=swap');
             .pdf-body { font-family: 'Noto Serif Bengali', serif; padding: 0; color: #000; background: white; }
-            .hp-header { text-align: center; padding-bottom: 15px; }
+            .hp-header { text-align: center; padding-bottom: 20px; padding-top: 5px; }
             .hp-hall-no { font-family: 'Anek Bangla', sans-serif; font-size: 30px; font-weight: 800; color: #000; margin: 0; line-height: 1; }
             .hp-exam { font-family: 'Noto Serif Bengali', 'Anek Bangla', sans-serif; font-size: 22px; font-weight: 700; color: #222; margin-top: 10px; }
             .hp-class-section { margin-bottom: 20px; }
