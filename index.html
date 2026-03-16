@@ -452,13 +452,15 @@
                 
                 <div>
                     <h3 class="text-sm font-bold text-indigo-600 mb-2"><i class="fa-solid fa-layer-group mr-1"></i> স্মার্ট গ্রুপিং</h3>
-                    <select id="pdf-group-by" class="w-full bg-slate-50 border border-slate-200 text-sm rounded-xl px-4 py-2.5 outline-none focus:border-indigo-400 font-medium">
+                                      <select id="pdf-group-by" class="w-full bg-slate-50 border border-slate-200 text-sm rounded-xl px-4 py-2.5 outline-none focus:border-indigo-400 font-medium">
                         <option value="">কোনো গ্রুপ নয় (সব একসাথে)</option>
                         <option value="classBn">শ্রেণী (Class) অনুযায়ী</option>
-                        <option value="gender">লিঙ্গ (Gender) অনুযায়ী</option>
+                        <option value="gender">লিঙ্গ (ছাত্র/ছাত্রী) অনুযায়ী</option>
+                        <option value="age">বয়স (Age) অনুযায়ী</option>
                         <option value="roll">রোল (Roll) অনুযায়ী</option>
                         <option value="blood">ব্লাড গ্রুপ অনুযায়ী</option>
                     </select>
+
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -1397,76 +1399,42 @@ function setPdfFormat(format) {
 }
 function updateCol(index, key, value) { pdfConfig.tableColumns[index][key] = value; }
 function removePdfColumn(index) { pdfConfig.tableColumns.splice(index, 1); renderTableColumns(); }
-// Helper to determine gender from varying database keys intelligently
+// জেন্ডার সঠিকভাবে চেনার জন্য আপডেট করা হলো
 function guessGender(student) {
     const g = student.Gender || student.gender || student.Sex || student.sex || student.লিঙ্গ || '';
     const str = g.toString().toLowerCase().trim();
-    if(str === 'male' || str === 'm' || str === 'ছেলে' || str === 'ছাত্র' || str === 'বালক') return 'ছেলে';
-    if(str === 'female' || str === 'f' || str === 'মেয়ে' || str === 'ছাত্রী' || str === 'বালিকা') return 'মেয়ে';
+    if(str === 'male' || str === 'm' || str === 'ছেলে' || str === 'ছাত্র' || str === 'বালক') return 'ছাত্র';
+    if(str === 'female' || str === 'f' || str === 'মেয়ে' || str === 'ছাত্রী' || str === 'বালিকা') return 'ছাত্রী';
     return 'অজানা';
 }
 
-function renderTableColumns() {
-    const container = document.getElementById('pdf-columns-container');
-    container.innerHTML = '';
+// বয়স বা জন্ম তারিখ (DOB) থেকে বয়স হিসাব করার স্মার্ট ফাংশন
+function calculateAge(dobStr) {
+    if (!dobStr) return 'অজানা';
+    let str = String(dobStr).trim();
+    let num = parseInt(toEn(str));
     
-    // ডাটাবেসের সাধারণ ফিল্ডগুলোর লিস্ট (ড্রপডাউনের জন্য)
-    const fieldOptions = [
-        {val: 'serial', text: 'ক্রমিক নং (Serial)'},
-        {val: 'id', text: 'আইডি (ID)'},
-        {val: 'roll', text: 'রোল (Roll)'},
-        {val: 'nameBn', text: 'নাম (বাংলা)'},
-        {val: 'nameEn', text: 'নাম (ইংরেজি)'},
-        {val: 'classBn', text: 'শ্রেণী (Class)'},
-        {val: 'gender', text: 'লিঙ্গ (Gender)'},
-        {val: 'blood', text: 'রক্তের গ্রুপ (Blood)'},
-        {val: 'father', text: 'পিতার নাম (Father)'},
-        {val: 'mother', text: 'মাতার নাম (Mother)'},
-        {val: 'session', text: 'সেশন (Session)'},
-        {val: 'address', text: 'ঠিকানা (Address)'}
-    ];
-
-    pdfConfig.tableColumns.forEach((col, index) => {
-        
-        // ডাইনামিক সিলেক্ট অপশন তৈরি
-        let selectHtml = `<select onchange="updateCol(${index}, 'field', this.value)" class="w-full bg-indigo-50 border border-indigo-100 text-[11px] text-indigo-700 mt-1 px-2 py-1.5 rounded outline-none font-bold cursor-pointer">`;
-        fieldOptions.forEach(opt => {
-            selectHtml += `<option value="${opt.val}" ${col.field === opt.val ? 'selected' : ''}>${opt.text}</option>`;
-        });
-        selectHtml += `</select>`;
-
-        container.innerHTML += `
-            <div class="flex items-center gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-                <div class="flex-1">
-                    <input type="text" value="${col.label}" onchange="updateCol(${index}, 'label', this.value)" placeholder="কলামের নাম (প্রিন্টে যা দেখাবে)" class="w-full bg-white border border-slate-300 rounded text-xs px-2 py-1.5 outline-none font-bold text-slate-800 focus:border-indigo-500">
-                    ${col.type === 'data' 
-                        ? selectHtml
-                        : `<input type="text" value="${col.default}" onchange="updateCol(${index}, 'default', this.value)" placeholder="ডিফল্ট ভ্যালু (যেমন: স্বাক্ষর)" class="w-full bg-white border border-slate-200 mt-1 rounded text-[11px] px-2 py-1.5 outline-none text-slate-500">`
-                    }
-                </div>
-                <div class="w-16">
-                    <div class="relative">
-                        <input type="number" value="${col.width}" onchange="updateCol(${index}, 'width', this.value)" class="w-full bg-white border border-slate-300 rounded text-xs px-2 py-1.5 outline-none pr-5 text-center font-bold focus:border-indigo-500">
-                        <span class="absolute right-1.5 top-1.5 text-xs text-slate-400">%</span>
-                    </div>
-                </div>
-                <button onclick="removePdfColumn(${index})" class="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors shadow-sm"><i class="fa-solid fa-trash-can"></i></button>
-            </div>
-        `;
-    });
+    // যদি ডাটাবেসে সরাসরি বয়স (যেমন: 8, 10, ০৮) দেওয়া থাকে
+    if (!isNaN(num) && str.length <= 2) return num; 
+    
+    // যদি জন্ম তারিখ (DOB) দেওয়া থাকে
+    let d;
+    let parts = str.split(/[-/]/);
+    if (parts.length === 3) {
+        if (parts[0].length === 4) d = new Date(parts[0], parts[1]-1, parts[2]); // YYYY-MM-DD
+        else d = new Date(parts[2], parts[1]-1, parts[0]); // DD-MM-YYYY
+    } else {
+        d = new Date(str);
+    }
+    
+    if (d && !isNaN(d.getTime())) {
+        let ageDifMs = Date.now() - d.getTime();
+        let ageDate = new Date(ageDifMs);
+        return Math.abs(ageDate.getUTCFullYear() - 1970);
+    }
+    return 'অজানা';
 }
 
-function addPdfColumn(type) {
-    pdfConfig.tableColumns.push({
-        id: 'col' + Date.now(),
-        type: type,
-        field: type === 'data' ? 'nameBn' : '', // ডিফল্ট হিসেবে 'নাম' সিলেক্ট থাকবে
-        label: type === 'data' ? 'নতুন কলাম' : 'ফাঁকা কলাম',
-        width: '15',
-        default: ''
-    });
-    renderTableColumns();
-}
 async function generateSuperPDF() {
     const btn = document.getElementById('btn-generate-pdf');
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> প্রস্তুত হচ্ছে...';
@@ -1484,17 +1452,13 @@ async function generateSuperPDF() {
         );
     }
 
-    // টাইটেল এবং সাব-টাইটেলের ইংরেজি সংখ্যাগুলোকে বাংলায় কনভার্ট করা হচ্ছে
     const title = e2b(document.getElementById('pdf-title').value);
     const subtitle = e2b(document.getElementById('pdf-subtitle').value);
     
     let htmlContent = `
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;600;700;800&family=Noto+Serif+Bengali:wght@500;600;700&display=swap');
-            
             .pdf-body { font-family: 'Noto Serif Bengali', serif; padding: 15mm; color: #000; background: white; }
             
-            /* Plain View (Hall Plan) Styles - EXACT MATCH */
             .hp-header { text-align: center; padding: 15px; margin: 0 10% 20px 10%; border: 2px solid #000; }
             .hp-hall-no { font-family: 'Anek Bangla', sans-serif; font-size: 45px; font-weight: 800; color: #000; margin: 0; line-height: 1; }
             .hp-exam { font-family: 'Noto Serif Bengali', 'Anek Bangla', sans-serif; font-size: 22px; font-weight: 700; color: #222; margin-top: 10px; }
@@ -1513,7 +1477,6 @@ async function generateSuperPDF() {
             .hp-total-text { font-family: 'Noto Serif Bengali', 'Anek Bangla', sans-serif; font-size: 22px; font-weight: 800; color: #000; margin-bottom: 2px; }
             .hp-total-sub { font-family: 'Noto Serif Bengali', 'Anek Bangla', sans-serif; font-size: 18px; font-weight: 600; color: #333; }
             
-            /* Table Styles */
             .official-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-family: 'Noto Serif Bengali', serif; }
             .official-table thead { display: table-header-group; }
             .official-table tr { page-break-inside: avoid; }
@@ -1537,15 +1500,13 @@ async function generateSuperPDF() {
         let totalBoysAll = 0; let totalGirlsAll = 0;
         dataToExport.forEach(s => {
             const g = guessGender(s);
-            if(g === 'ছেলে') totalBoysAll++;
-            if(g === 'মেয়ে') totalGirlsAll++;
+            if(g === 'ছাত্র') totalBoysAll++;
+            if(g === 'ছাত্রী') totalGirlsAll++;
         });
 
         htmlContent += `<table class="official-table"><thead><tr>`;
-        
         pdfConfig.tableColumns.forEach(col => {
             let align = (col.field === 'serial' || col.field === 'roll' || col.type === 'blank') ? 'center' : 'left';
-            // কলামের নাম বাংলা নম্বরে কনভার্ট
             htmlContent += `<th style="width: ${col.width}%; text-align: ${align};">${e2b(col.label)}</th>`;
         });
         htmlContent += `</tr></thead><tbody>`;
@@ -1557,13 +1518,12 @@ async function generateSuperPDF() {
                 let align = (col.field === 'serial' || col.field === 'roll' || col.type === 'blank') ? 'center' : 'left';
                 
                 if(col.type === 'blank') {
-                    // ফাঁকা কলামের ডিফল্ট ডাটাও বাংলা নম্বরে কনভার্ট
                     cellData = e2b(col.default || '');
                 } else if(col.field === 'serial') {
                     cellData = e2b(index + 1);
                 } else {
                     let rawVal = s[col.field] || s[col.field.toLowerCase()] || s[col.field.charAt(0).toUpperCase() + col.field.slice(1)] || '-';
-                    // যেকোনো ফিল্ডের ডাটা (আইডি, রোল, মোবাইল নম্বর) বাংলায় কনভার্ট
+                    if (col.field === 'gender') rawVal = guessGender(s);
                     cellData = e2b(rawVal);
                 }
                 htmlContent += `<td style="padding: ${pd}; text-align: ${align};">${cellData}</td>`;
@@ -1600,7 +1560,19 @@ async function generateSuperPDF() {
         
         if (groupBy) {
             dataToExport.forEach(s => {
-                const keyVal = s[groupBy] || s[groupBy.toLowerCase()] || s[groupBy.charAt(0).toUpperCase() + groupBy.slice(1)] || 'অন্যান্য';
+                let keyVal = 'অন্যান্য';
+                // স্মার্ট ডেটা ফিল্টারিং ও গ্রুপিং
+                if (groupBy === 'blood') {
+                    keyVal = s['Blood'] || s['blood'] || s['Blood Group'] || s['BloodGroup'] || s['রক্তের গ্রুপ'] || 'অজানা';
+                } else if (groupBy === 'gender') {
+                    keyVal = guessGender(s); 
+                } else if (groupBy === 'age') {
+                    let dob = s['Age'] || s['age'] || s['DOB'] || s['Date of Birth'] || s['জন্ম তারিখ'] || s['DOB/Age'];
+                    keyVal = calculateAge(dob);
+                } else {
+                    keyVal = s[groupBy] || s[groupBy.toLowerCase()] || s[groupBy.charAt(0).toUpperCase() + groupBy.slice(1)] || 'অন্যান্য';
+                }
+                
                 if(!groupedData[keyVal]) groupedData[keyVal] = [];
                 groupedData[keyVal].push(s);
             });
@@ -1608,7 +1580,24 @@ async function generateSuperPDF() {
             groupedData['All'] = dataToExport;
         }
 
-        for (const [groupName, groupStudents] of Object.entries(groupedData)) {
+        // লজিক্যাল সর্টিং (ছোট থেকে বড়, বা ক্লাস অনুযায়ী)
+        let groupKeys = Object.keys(groupedData);
+        groupKeys.sort((a, b) => {
+            if (a === 'অন্যান্য' || a === 'অজানা') return 1;
+            if (b === 'অন্যান্য' || b === 'অজানা') return -1;
+            
+            if (groupBy === 'age' || groupBy === 'roll') {
+                return parseInt(toEn(a)) - parseInt(toEn(b)); // ছোট থেকে বড় সাজানো
+            }
+            if (groupBy === 'classBn') {
+                const classOrderMap = { "প্লে": 1, "নার্সারি": 2, "কেজি": 3, "১ম": 4, "২য়": 5, "৩য়": 6, "৪র্থ": 7, "৫ম": 8, "৬ষ্ঠ": 9, "৭ম": 10, "৮ম": 11, "৯ম": 12, "১০ম": 13 };
+                return (classOrderMap[a] || 99) - (classOrderMap[b] || 99);
+            }
+            return String(a).localeCompare(String(b));
+        });
+
+        for (const groupName of groupKeys) {
+            const groupStudents = groupedData[groupName];
             
             htmlContent += `<div class="hp-class-section">`;
 
@@ -1616,8 +1605,8 @@ async function generateSuperPDF() {
                 let boysCount = 0; let girlsCount = 0;
                 groupStudents.forEach(s => {
                     const g = guessGender(s);
-                    if(g === 'ছেলে') boysCount++;
-                    if(g === 'মেয়ে') girlsCount++;
+                    if(g === 'ছাত্র') boysCount++;
+                    if(g === 'ছাত্রী') girlsCount++;
                 });
                 
                 let genderText = "";
@@ -1625,10 +1614,19 @@ async function generateSuperPDF() {
                     genderText = `(ছাত্র: ${e2b(boysCount)} জন | ছাত্রী: ${e2b(girlsCount)} জন)`;
                 }
 
-                // গ্রুপ নেম (যেমন ক্লাস) বাংলা নম্বরে কনভার্ট
+                // প্রফেশনাল টাইটেল মেকিং ("বয়স ৬", "প্লে শ্রেণি", "A+ (ব্লাড গ্রুপ)")
+                let displayGroupName = e2b(groupName);
+                if (groupBy === 'classBn' && groupName !== 'অন্যান্য') {
+                    displayGroupName += " শ্রেণি";
+                } else if (groupBy === 'age' && groupName !== 'অজানা') {
+                    displayGroupName = "বয়স " + displayGroupName;
+                } else if (groupBy === 'blood' && groupName !== 'অজানা') {
+                    displayGroupName += " (ব্লাড গ্রুপ)";
+                }
+
                 htmlContent += `
                     <div class="hp-class-header">
-                        <div class="hp-class-name">${e2b(groupName)} - ${e2b(groupStudents.length)} জন</div>
+                        <div class="hp-class-name">${displayGroupName} - ${e2b(groupStudents.length)} জন</div>
                         <div class="hp-class-stats">${genderText}</div>
                     </div>
                 `;
@@ -1640,10 +1638,12 @@ async function generateSuperPDF() {
                 let itemStrArray = [];
                 fields.forEach(f => {
                     let val = s[f] || s[f.toLowerCase()] || s[f.charAt(0).toUpperCase() + f.slice(1)];
-                    if(val) {
-                        // যেকোনো ফিল্ডের ডাটা বাংলায় কনভার্ট
-                        itemStrArray.push(e2b(val));
+                    if (f === 'gender') val = guessGender(s);
+                    if (f === 'age') {
+                        let dob = s['Age'] || s['age'] || s['DOB'] || s['Date of Birth'] || s['জন্ম তারিখ'] || s['DOB/Age'];
+                        val = calculateAge(dob);
                     }
+                    if(val) itemStrArray.push(e2b(val));
                 });
                 
                 let prefix = "";
@@ -1669,8 +1669,8 @@ async function generateSuperPDF() {
         let totalBoysAll = 0; let totalGirlsAll = 0;
         dataToExport.forEach(s => {
             const g = guessGender(s);
-            if(g === 'ছেলে') totalBoysAll++;
-            if(g === 'মেয়ে') totalGirlsAll++;
+            if(g === 'ছাত্র') totalBoysAll++;
+            if(g === 'ছাত্রী') totalGirlsAll++;
         });
 
         htmlContent += `
