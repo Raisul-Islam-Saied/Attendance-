@@ -198,24 +198,21 @@
             </div>  
         </div>  
 
-        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 mb-6 relative overflow-hidden">
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 mb-6 relative overflow-hidden">
             <div class="flex justify-between items-center mb-3">
-                <h3 class="font-bold text-slate-800"><i class="fa-solid fa-users-viewfinder text-indigo-500 mr-2"></i>অ্যাডভান্সড ডাটা ফাইন্ডার</h3>
-                <span class="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg font-bold border border-indigo-100">স্ক্যান ছাড়া খুঁজুন</span>
-            </div>
-            <p class="text-xs text-slate-500 mb-4">যেকোনো শর্ত দিয়ে ফিল্টার করে একসাথে নির্দিষ্ট শিক্ষার্থীদের প্রোফাইল বের করুন।</p>
-            
-            <div class="flex gap-3">
-                <button onclick="openFilterModal()" class="flex-1 bg-slate-50 text-slate-700 border border-slate-200 font-bold py-2.5 rounded-xl flex justify-center items-center gap-2 shadow-sm hover:bg-slate-100 active:scale-95 transition-all text-sm">
-                    <i class="fa-solid fa-filter text-slate-400"></i> ফিল্টার সেট
-                </button>
-                <button onclick="loadManualData()" class="flex-1 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold py-2.5 rounded-xl flex justify-center items-center gap-2 shadow-md shadow-indigo-200 hover:shadow-lg active:scale-95 transition-all text-sm">
-                    <i class="fa-solid fa-bolt text-yellow-300"></i> ডাটা লোড
-                </button>
+                <h3 class="font-bold text-slate-800"><i class="fa-solid fa-users-viewfinder text-indigo-500 mr-2"></i>অ্যাডভান্সড অপশন</h3>
             </div>
             
-            <div id="manual-data-list" class="mt-4 space-y-2 empty:hidden max-h-[300px] overflow-y-auto custom-scrollbar pr-1 border-t border-slate-100 pt-3"></div>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="openFilterModal('history')" class="bg-gray-600 text-white font-bold py-3 rounded-xl flex justify-center items-center gap-2 shadow hover:bg-gray-700 transition text-sm">
+                    <i data-lucide="filter" class="w-4 h-4"></i> হিস্ট্রি ফিল্টার
+                </button>
+                <button onclick="openFilterModal('load')" class="bg-[#005A34] text-white font-bold py-3 rounded-xl flex justify-center items-center gap-2 shadow hover:bg-[#004225] transition text-sm">
+                    <i data-lucide="user-check" class="w-4 h-4"></i> ডাটা লোড
+                </button>
+            </div>
         </div>
+
 
         <div class="flex justify-between items-center mb-4">  
             <h3 class="font-bold text-slate-800 text-lg">সর্বশেষ অনুসন্ধানকৃত</h3>  
@@ -363,8 +360,8 @@
 </div>
     <div id="filter-modal" class="fixed inset-0 bg-black bg-opacity-50 z-[100000] flex justify-center items-center hidden">
     <div class="bg-white w-11/12 max-w-lg rounded-xl overflow-hidden flex flex-col max-h-[90vh] shadow-2xl transform scale-95 transition-transform" id="filter-modal-card">
-        <div class="bg-[#005A34] text-white p-3 flex justify-between items-center">
-            <h3 class="font-bold flex items-center gap-2 text-sm"><i data-lucide="filter" class="w-4 h-4"></i> অ্যাডভান্সড ফিল্টারিং রুলস</h3>
+        <div class="bg-[#005A34] text-white p-3 flex justify-between items-center" id="filter-modal-header">
+            <h3 class="font-bold flex items-center gap-2 text-sm"><i data-lucide="filter" class="w-4 h-4"></i> <span id="filter-modal-title">অ্যাডভান্সড ফিল্টারিং রুলস</span></h3>
             <button onclick="closeFilterModal()" class="text-white hover:text-gray-200 transition-colors">
                 <i data-lucide="x" class="w-5 h-5"></i>
             </button>
@@ -372,18 +369,19 @@
         <div id="filter-rules-container" class="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-3 custom-scrollbar"></div>
         <div class="px-4 py-2 bg-gray-50 border-t flex justify-between items-center">
             <button onclick="addFilterRule()" class="text-[#005A34] font-bold text-sm flex items-center gap-1 hover:text-[#1e40af] transition-colors">
-                <i data-lucide="plus-circle" class="w-4 h-4"></i> নতুন রুল যোগ করুন
+                <i data-lucide="plus-circle" class="w-4 h-4"></i> নতুন রুল
             </button>
-            <span class="text-[11px] font-bold text-gray-500 bg-gray-200 px-2 py-1 rounded">মোট শিক্ষার্থী: <span id="filter-modal-count" class="text-[#005A34]">0</span></span>
+            <span class="text-[11px] font-bold text-gray-500 bg-gray-200 px-2 py-1 rounded">মোট: <span id="filter-modal-count" class="text-[#005A34]">0</span></span>
         </div>
         <div class="p-3 border-t bg-white flex gap-2">
             <button onclick="resetFilter()" class="w-1/3 bg-gray-200 text-gray-800 font-bold py-2 rounded-lg text-sm">রিসেট</button>
-            <button onclick="applyAdvancedFilter()" class="w-2/3 bg-[#1e40af] text-white font-bold py-2 rounded-lg flex justify-center items-center gap-2 text-sm">
-                <i data-lucide="check-check" class="w-4 h-4"></i> ফিল্টার সেট করুন
+            <button id="filter-action-btn" class="w-2/3 bg-[#1e40af] text-white font-bold py-2 rounded-lg flex justify-center items-center gap-2 text-sm">
+                <i data-lucide="check-check" class="w-4 h-4"></i> <span id="filter-action-text">এপ্লাই করুন</span>
             </button>
         </div>
     </div>
 </div>
+
 
 <div id="student-profile-modal" class="fixed inset-0 z-[99999] hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-0 duration-300">
     <div class="bg-white rounded-[24px] w-full max-w-sm max-h-[85vh] overflow-y-auto custom-scrollbar shadow-2xl transform scale-95 transition-transform duration-300 relative" id="profile-card">
@@ -1801,19 +1799,44 @@ async function generateSuperPDF() {
     }, 500);
 }
 
-
 // ==========================================
 // ADVANCED FILTER & MANUAL LOAD LOGIC
 // ==========================================
-let filteredStudentsManual = [];
+let currentFilterMode = 'history'; // 'history' বা 'load'
 
-function openFilterModal() {
-    const allStudents = Object.values(state.students);
-    if(allStudents.length === 0) { 
-        Swal.fire('ডেটাবেস খালি!', 'প্রথমে সেটিংস থেকে API ডাটা সিঙ্ক করুন।', 'warning'); 
-        return; 
+function openFilterModal(mode) {
+    currentFilterMode = mode;
+    const titleEl = document.getElementById('filter-modal-title');
+    const headerEl = document.getElementById('filter-modal-header');
+    const countEl = document.getElementById('filter-modal-count');
+    const actionBtn = document.getElementById('filter-action-btn');
+    const actionText = document.getElementById('filter-action-text');
+
+    if (mode === 'history') {
+        if(state.historyData.length === 0) { 
+            Swal.fire('হিস্ট্রি খালি!', 'প্রথমে কিছু শিক্ষার্থী স্ক্যান করুন।', 'warning'); 
+            return; 
+        }
+        titleEl.innerText = "হিস্ট্রি ফিল্টার (শুধু স্ক্যান করা ডাটা)";
+        headerEl.className = "bg-gray-600 text-white p-3 flex justify-between items-center";
+        countEl.innerText = e2b(state.historyData.length);
+        actionText.innerText = "হিস্ট্রি ফিল্টার করুন";
+        actionBtn.className = "w-2/3 bg-gray-700 text-white font-bold py-2 rounded-lg flex justify-center items-center gap-2 text-sm";
+        actionBtn.onclick = applyHistoryFilter;
+    } else {
+        const allStudents = Object.values(state.students);
+        if(allStudents.length === 0) { 
+            Swal.fire('ডেটাবেস খালি!', 'প্রথমে সেটিংস থেকে API ডাটা সিঙ্ক করুন।', 'warning'); 
+            return; 
+        }
+        titleEl.innerText = "ডাটা লোড (সম্পূর্ণ ডাটাবেস)";
+        headerEl.className = "bg-[#005A34] text-white p-3 flex justify-between items-center";
+        countEl.innerText = e2b(allStudents.length);
+        actionText.innerText = "ডাটা লোড করুন";
+        actionBtn.className = "w-2/3 bg-[#005A34] text-white font-bold py-2 rounded-lg flex justify-center items-center gap-2 text-sm";
+        actionBtn.onclick = loadManualData;
     }
-    document.getElementById('filter-modal-count').innerText = e2b(allStudents.length);
+
     const container = document.getElementById('filter-rules-container');
     if(container.children.length === 0) addFilterRule();
     
@@ -1831,14 +1854,13 @@ function closeFilterModal() {
     setTimeout(() => modal.classList.add('hidden'), 200);
 }
 
-// এই ফাংশনটি নোটিশ অ্যাপের মতোই রুল যোগ করবে
 function addFilterRule() {
     const container = document.getElementById('filter-rules-container');
     const ruleId = Date.now();
     const isFirst = container.children.length === 0;
 
     const ruleHTML = `      
-        <div class="filter-rule-item flex flex-col sm:flex-row gap-2 sm:items-center bg-white p-3 border rounded-lg shadow-sm relative" id="rule-${ruleId}">      
+        <div class="filter-rule-item flex flex-col sm:flex-row gap-2 sm:items-center bg-white p-3 sm:p-2 border rounded-lg shadow-sm relative" id="rule-${ruleId}">      
             <div class="w-full sm:w-24 ${isFirst ? 'hidden' : ''}">
                 <select class="rule-connector w-full border rounded p-1.5 text-xs font-bold text-gray-700 outline-none">
                     <option value="&&">AND (এবং)</option>
@@ -1902,20 +1924,20 @@ function updateFilterInputUI(el) {
 
 function resetFilter() {
     document.getElementById('filter-rules-container').innerHTML = '';
-    filteredStudentsManual = [];
+    if(currentFilterMode === 'history') {
+        renderHistoryUI(); // রিসেট করলে পুরো হিস্ট্রি আবার দেখাবে
+    }
     closeFilterModal();
     Toast.fire({ icon: 'info', title: 'ফিল্টার রিসেট করা হয়েছে' });
 }
 
-function applyAdvancedFilter() {
-    const allStudents = Object.values(state.students);
+function getFilteredData(sourceData) {
     const allRuleItems = document.querySelectorAll('.filter-rule-item');
-    
-    if(allRuleItems.length === 0) { resetFilter(); return; }
+    if(allRuleItems.length === 0) return sourceData;
 
     const classOrderMap = { "প্লে": 1, "নার্সারি": 2, "কেজি": 3, "১ম": 4, "২য়": 5, "৩য়": 6, "৪র্থ": 7, "৫ম": 8, "৬ষ্ঠ": 9, "৭ম": 10, "৮ম": 11, "৯ম": 12, "১০ম": 13 };
 
-    filteredStudentsManual = allStudents.filter(st => {
+    return sourceData.filter(st => {
         let finalResult = false;
         let currentGroupResult = true;
 
@@ -1929,10 +1951,10 @@ function applyAdvancedFilter() {
             let valInputMax = item.querySelector('.rule-val-max');
 
             let inputVal = valInput1 ? valInput1.value.trim() : '';
-            let stVal = st[field] || "";
+            let stVal = st[field] || st[field.toLowerCase()] || "";
 
             let conditionMet = false;
-            let numStVal = parseFloat(String(stVal));
+            let numStVal = parseFloat(toEn(String(stVal)));
 
             if (operator === 'between') {
                 if (field === 'classBn') {
@@ -1958,40 +1980,99 @@ function applyAdvancedFilter() {
         });
         return finalResult || currentGroupResult;
     });
-
-    closeFilterModal();
-    Toast.fire({ icon: 'success', title: `ফিল্টার সেট হয়েছে (${e2b(filteredStudentsManual.length)} জন)` });
 }
 
-// "ডাটা লোড" বাটনের লজিক
-function loadManualData() {
-    const listContainer = document.getElementById('manual-data-list');
-    listContainer.innerHTML = '';
-
-    if(filteredStudentsManual.length === 0) {
-        Swal.fire('ডেটা নেই', 'প্রথমে "এপ্লাই ফিল্টার" এ ক্লিক করে শিক্ষার্থী খুঁজে নিন।', 'info');
+function applyHistoryFilter() {
+    // ১. হিস্ট্রি ডাটা ম্যাপ করে ফুল স্টুডেন্ট অবজেক্ট বানানো
+    const scannedStudents = state.historyData.map(record => ({ ...record, ...state.students[record.id] })).filter(s => s.nameBn);
+    
+    // ২. ফিল্টার করা
+    const filteredHistory = getFilteredData(scannedStudents);
+    
+    if(filteredHistory.length === 0) {
+        Swal.fire('পাওয়া যায়নি', 'আপনার শর্ত অনুযায়ী হিস্ট্রিতে কোনো ডাটা নেই।', 'info');
         return;
     }
 
-    filteredStudentsManual.slice(0, 50).forEach(s => { // একসাথে সর্বোচ্চ ৫০ জন দেখাবে যেন হ্যাং না করে
-        const img = s.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.nameEn || 'S')}&background=4F46E5&color=fff`;
-        listContainer.innerHTML += `
-            <div onclick="openStudentProfile('${s.id}')" class="bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex items-center gap-3 cursor-pointer hover:bg-slate-50 active:scale-95 transition-all">
-                <img src="${img}" class="w-10 h-10 rounded-full object-cover border border-slate-200">
-                <div class="flex-1 min-w-0">
-                    <h4 class="font-bold text-slate-800 text-sm truncate">${s.nameBn}</h4>
-                    <p class="text-xs text-slate-500">আইডি: ${s.id} | রোল: ${e2b(s.roll)} | শ্রেণি: ${s.classBn}</p>
-                </div>
-                <button class="bg-[#005A34] text-white px-2 py-1 rounded text-[10px] font-bold shadow flex items-center gap-1">
-                    ওপেন <i data-lucide="arrow-right" class="w-3 h-3"></i>
-                </button>
-            </div>
-        `;
-    });
-    if(window.lucide) lucide.createIcons();
+    // ৩. UI আপডেট করা (হিস্ট্রি ট্যাবে ফিল্টার করা ডাটা দেখানো)
+    const listContainer = document.getElementById('full-history-list');
+    let html = '';  
+    filteredHistory.forEach(record => {  
+        const s = state.students[record.id] || { nameBn: 'অজানা', classBn: '-' };  
+        const img = s.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.nameEn || 'S')}&background=random`;  
+        const parts = record.timeStr.split(':');
+        const timeOnly = parts[0] + ':' + parts[1] + ' ' + record.timeStr.split(' ')[1];
+        const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+        const dateBn = record.dateStr.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+
+        html += `  
+            <div onclick="openStudentProfile('${record.id}')" class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 fade-in cursor-pointer hover:bg-slate-50 active:scale-[0.98] transition-all">  
+                <img src="${img}" class="w-12 h-12 rounded-full object-cover border-2 border-indigo-50" onerror="this.src='https://ui-avatars.com/api/?name=S&background=random'">  
+                <div class="flex-1 min-w-0">  
+                    <h4 class="font-bold text-slate-800 text-sm truncate">${s.nameBn}</h4>  
+                    <div class="flex items-center gap-2 mt-1 text-xs text-slate-500">  
+                        <span class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">আইডি: ${record.id}</span>  
+                        <span>রোল: ${s.roll || '-'}</span>  
+                        <span class="hidden sm:inline">• শ্রেণী: ${s.classBn || '-'}</span>
+                    </div>  
+                </div>  
+                <div class="text-[10px] font-medium text-slate-400 text-right flex flex-col justify-center">  
+                    <span class="text-xs text-slate-600 font-bold"><i class="fa-regular fa-clock mr-0.5"></i> ${timeBn}</span>
+                    <span>${dateBn}</span>
+                </div>  
+            </div>  
+        `;  
+    });  
+    listContainer.innerHTML = html; 
+    document.getElementById('history-count').innerText = e2b(filteredHistory.length);
+
+    closeFilterModal();
+    switchTab('history');
+    Toast.fire({ icon: 'success', title: `হিস্ট্রি ফিল্টার হয়েছে (${e2b(filteredHistory.length)} জন)` });
 }
 
+function loadManualData() {
+    const allStudents = Object.values(state.students);
+    const filteredDB = getFilteredData(allStudents);
 
+    if(filteredDB.length === 0) {
+        Swal.fire({ title: 'ডেটা নেই', text: 'আপনার শর্ত অনুযায়ী ডাটাবেসে কাউকে পাওয়া যায়নি।', icon: 'info' });
+        return;
+    }
+
+    let addedCount = 0;
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('bn-BD', { year: 'numeric', month: 'short', day: 'numeric' });
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+    filteredDB.forEach(student => {
+        const studentId = student.id;
+        const existingIndex = state.historyData.findIndex(r => r.id === studentId);
+        if (existingIndex !== -1) { state.historyData.splice(existingIndex, 1); }
+        
+        state.historyData.unshift({
+            id: studentId,
+            timestamp: now.getTime(),
+            dateStr: dateStr,
+            timeStr: timeStr
+        });
+        addedCount++;
+    });
+
+    saveHistoryData();
+    playBeep('success');
+    if (navigator.vibrate) navigator.vibrate([100]);
+
+    closeFilterModal();
+    switchTab('history');
+    
+    Swal.fire({
+        title: 'সফল!', 
+        text: `${e2b(addedCount)} জন শিক্ষার্থীর ডাটা সফলভাবে স্ক্যান লিস্টে লোড হয়েছে!`, 
+        icon: 'success',
+        timer: 3000
+    });
+}
     
     // Mobile back button close modal
 window.addEventListener("popstate", function(event) {
