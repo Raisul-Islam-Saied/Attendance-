@@ -1268,68 +1268,69 @@ const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d])
      * EXPORT & DATA MANAGEMENT  
      * ==========================================  
      */  
-function exportData() {  
-    // সার্চ বক্সে যা লেখা আছে তা নিন
-    const term = document.getElementById('search-input')?.value.toLowerCase() || '';
-    
-    // হিস্ট্রি থেকে ডাটা নিন
-    let dataToExport = [...state.historyData];
-    
-    // যদি সার্চ বক্সে কিছু লেখা থাকে, তবে ডাটা ফিল্টার করুন
-    if(term) {
-        dataToExport = dataToExport.filter(record => {
-            const s = state.students[record.id];
-            if (!s) return false;
-            return (
-                (s.nameBn && s.nameBn.includes(term)) || 
-                (s.nameEn && s.nameEn.toLowerCase().includes(term)) || 
-                (record.id && record.id.includes(term))
-            );
+    function exportData() {  
+        // স্ক্রিনে বর্তমানে যে ডাটাগুলো দেখা যাচ্ছে (অ্যাডভান্সড ফিল্টার বা সাধারণ সার্চ), সেগুলোর আইডি DOM থেকে নেয়া
+        const historyListElements = document.querySelectorAll('#full-history-list div[onclick^="openStudentProfile"]');
+        
+        let dataToExport = [];
+        historyListElements.forEach(el => {
+            // onclick থেকে আইডি বের করা
+            const match = el.getAttribute('onclick').match(/'([^']+)'/);
+            if (match && match[1]) {
+                const id = match[1];
+                // historyData থেকে ওই আইডির সম্পূর্ণ রেকর্ডটা খুঁজে বের করা
+                const record = state.historyData.find(r => r.id === id);
+                if (record) {
+                    dataToExport.push(record);
+                }
+            }
         });
+
+        if (dataToExport.length === 0) {  
+            Swal.fire('ফাঁকা লিস্ট', 'এক্সপোর্ট করার মতো কোনো ডাটা খুঁজে পাওয়া যায়নি।', 'info');  
+            return;  
+        }  
+
+        let csv = "Date,Time,ID,Name(Bn),Name(En),Class,Roll\n";  
+          
+        dataToExport.forEach(r => {  
+            const s = state.students[r.id] || {};  
+            const nameBn = s.nameBn ? s.nameBn.replace(/,/g, " ") : "";   
+            const nameEn = s.nameEn ? s.nameEn.replace(/,/g, " ") : "";  
+            const classBn = s.classBn ? s.classBn.replace(/,/g, " ") : "";  
+            const roll = s.roll || "";  
+              
+            csv += `"${r.dateStr}","${r.timeStr}",${r.id},${nameBn},${nameEn},${classBn},${roll}\n`;  
+        });  
+
+        // ফাইল ডাউনলোড করার প্রসেস
+        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });  
+        const link = document.createElement("a");  
+        link.href = URL.createObjectURL(blob);  
+        
+        // ফাইলের নাম ডাইনামিক করা
+        const term = document.getElementById('search-input')?.value.trim();
+        link.download = term ? `Filtered_History_${term}.csv` : `Filtered_Export.csv`;  
+        link.click();  
+          
+        if(typeof Toast !== 'undefined') {
+            Toast.fire({ icon: 'success', title: 'ফিল্টার হওয়া ডাটা এক্সপোর্ট হয়েছে' });  
+        }
     }
 
-    if (dataToExport.length === 0) {  
-        Swal.fire('ফাঁকা লিস্ট', 'এক্সপোর্ট করার মতো কোনো ডাটা খুঁজে পাওয়া যায়নি।', 'info');  
-        return;  
-    }  
-
-    let csv = "Date,Time,ID,Name(Bn),Name(En),Class,Roll\n";  
-      
-    dataToExport.forEach(r => {  
-        const s = state.students[r.id] || {};  
-        const nameBn = s.nameBn ? s.nameBn.replace(/,/g, " ") : "";   
-        const nameEn = s.nameEn ? s.nameEn.replace(/,/g, " ") : "";  
-        const classBn = s.classBn ? s.classBn.replace(/,/g, " ") : "";  
-        const roll = s.roll || "";  
-          
-        csv += `"${r.dateStr}","${r.timeStr}",${r.id},${nameBn},${nameEn},${classBn},${roll}\n`;  
-    });  
-
-    // ফাইল ডাউনলোড করার প্রসেস
-    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });  
-    const link = document.createElement("a");  
-    link.href = URL.createObjectURL(blob);  
-    link.download = term ? `Filtered_History_${term}.csv` : `Full_Search_History.csv`;  
-    link.click();  
-      
-    Toast.fire({ icon: 'success', title: 'ফিল্টার হওয়া ডাটা এক্সপোর্ট হয়েছে' });  
-}
-  
     function copyAllIds() {
-        // বর্তমান সার্চ বক্সে কিছু লেখা থাকলে সেটা অনুযায়ী ডেটা ফিল্টার করা
-        const term = document.getElementById('search-input').value.toLowerCase();
-        let filteredData = [...state.historyData];
+        // স্ক্রিনে বর্তমানে যে আইডিগুলো দেখা যাচ্ছে সেগুলো DOM থেকে নেয়া
+        const historyListElements = document.querySelectorAll('#full-history-list div[onclick^="openStudentProfile"]');
         
-        if(term) {
-            filteredData = filteredData.filter(record => {
-                const s = state.students[record.id];
-                if (!s) return false;
-                return s.nameBn.includes(term) || s.nameEn.toLowerCase().includes(term) || record.id.includes(term);
-            });
-        }
+        let idsToCopy = [];
+        historyListElements.forEach(el => {
+            const match = el.getAttribute('onclick').match(/'([^']+)'/);
+            if (match && match[1]) {
+                idsToCopy.push(match[1]);
+            }
+        });
         
-        // ফিল্টার করা বা মূল লিস্টের আইডিগুলো নিয়ে কমা দিয়ে যুক্ত করা
-        const ids = filteredData.map(r => r.id).join(', ');
+        const ids = idsToCopy.join(', ');
         
         if(!ids) {
             Swal.fire('ফাঁকা লিস্ট', 'কপি করার মতো কোনো আইডি নেই।', 'info');
