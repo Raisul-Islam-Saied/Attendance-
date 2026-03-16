@@ -79,6 +79,23 @@
     .slide-up { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }  
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }  
     @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }  
+    /* =========================================================
+       PRINT ENGINE (NATIVE PDF)
+       ========================================================= */
+    #print-engine { display: none; }
+
+    @media print {
+        html, body { background: white !important; margin: 0; padding: 0; height: auto; overflow: visible; }
+        
+        /* প্রিন্ট করার সময় অ্যাপের অন্যান্য সব কিছু লুকিয়ে ফেলবে */
+        #splash-screen, header, main, nav, #student-profile-modal, #pdf-export-modal { display: none !important; }
+        
+        /* শুধু প্রিন্ট ইঞ্জিন দৃশ্যমান থাকবে */
+        #print-engine { display: block !important; position: static; width: 100%; margin: 0; padding: 0; }
+
+        @page { size: A4 portrait; margin: 0; }
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; }
+    }
 
     /* Bottom Nav Magic Indicator */  
     .nav-item { position: relative; transition: all 0.3s ease; }  
@@ -470,7 +487,7 @@
     </div>
 </div>
 
-<div id="pdf-render-container" style="display: none;"></div>
+<<div id="print-engine"></div>
 <!-- JavaScript Application Logic -->  
 <script>  
     /** * ==========================================  
