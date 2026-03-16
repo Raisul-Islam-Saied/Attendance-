@@ -1469,7 +1469,7 @@ openPdfModal = function() {
     renderPlainFields();
 }
 
-    async function generateSuperPDF() {
+  async function generateSuperPDF() {
     const btn = document.getElementById('btn-generate-pdf');
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> প্রস্তুত হচ্ছে...';
     btn.disabled = true;
@@ -1504,7 +1504,7 @@ openPdfModal = function() {
             
             .hp-grid { column-gap: 20px; }
             
-            /* এখানে শুধু অ্যালাইনমেন্ট ফিক্স করা হয়েছে এবং সিরিয়াল যোগ করা হয়েছে */
+            /* এখানে অ্যালাইনমেন্ট ফিক্স করা হয়েছে এবং সিরিয়াল যোগ করা হয়েছে */
             .hp-item { display: flex; align-items: baseline; gap: 6px; padding: 2.5px 0; font-size: 18px; page-break-inside: avoid; }
             .hp-serial { font-family: 'Noto Serif Bengali', monospace; font-weight: 700; font-size: 18px; color: #000; flex-shrink: 0; min-width: 25px; text-align: left; }
             .hp-prefix { font-family: 'Noto Serif Bengali', monospace; font-weight: 700; font-size: 18px; color: #000; flex-shrink: 0; min-width: 45px; text-align: left; }
@@ -1524,7 +1524,7 @@ openPdfModal = function() {
         <div class="pdf-body">
     `;
 
-    // --- TABLE FORMAT LOGIC (OFFICIAL) ---
+    // --- TABLE FORMAT LOGIC (OFFICIAL - UNTOUCHED) ---
     if (pdfConfig.format === 'table') {
         htmlContent += `
             ${title ? `<h1 style="text-align: center; font-size: 26px; font-family: 'Anek Bangla', sans-serif; font-weight: 800; margin-bottom: ${subtitle ? '5px' : '20px'}; color: #000;">${title}</h1>` : ''}
@@ -1577,14 +1577,14 @@ openPdfModal = function() {
         `;
     } 
     
-    // --- PLAIN FORMAT LOGIC (HALL PLAN EXACT MATCH) ---
+    // --- PLAIN FORMAT LOGIC (SMART FIELDS WITH SERIAL) ---
     else {
         const groupBy = document.getElementById('pdf-group-by').value;
         const cols = parseInt(document.getElementById('pdf-plain-cols').value) || 3;
         const separator = document.getElementById('pdf-separator').value || ' - ';
         
-        const cbElements = document.querySelectorAll('.plain-field-cb:checked');
-        const fields = Array.from(cbElements).map(cb => cb.value);
+        const fieldsRaw = document.getElementById('pdf-plain-fields').value;
+        const fields = fieldsRaw.split(',').map(f => f.trim()).filter(f => f);
 
         if(title || subtitle) {
             htmlContent += `<div class="hp-header">`;
@@ -1598,6 +1598,7 @@ openPdfModal = function() {
         if (groupBy) {
             dataToExport.forEach(s => {
                 let keyVal = 'অন্যান্য';
+                // স্মার্ট ডেটা ফিল্টারিং ও গ্রুপিং
                 if (groupBy === 'blood') {
                     keyVal = s['Blood'] || s['blood'] || s['Blood Group'] || s['BloodGroup'] || s['রক্তের গ্রুপ'] || 'অজানা';
                 } else if (groupBy === 'gender') {
@@ -1616,13 +1617,14 @@ openPdfModal = function() {
             groupedData['All'] = dataToExport;
         }
 
+        // লজিক্যাল সর্টিং (ছোট থেকে বড়, বা ক্লাস অনুযায়ী)
         let groupKeys = Object.keys(groupedData);
         groupKeys.sort((a, b) => {
             if (a === 'অন্যান্য' || a === 'অজানা') return 1;
             if (b === 'অন্যান্য' || b === 'অজানা') return -1;
             
             if (groupBy === 'age' || groupBy === 'roll') {
-                return parseInt(toEn(a)) - parseInt(toEn(b)); 
+                return parseInt(toEn(a)) - parseInt(toEn(b)); // ছোট থেকে বড় সাজানো
             }
             if (groupBy === 'classBn') {
                 const classOrderMap = { "প্লে": 1, "নার্সারি": 2, "কেজি": 3, "১ম": 4, "২য়": 5, "৩য়": 6, "৪র্থ": 7, "৫ম": 8, "৬ষ্ঠ": 9, "৭ম": 10, "৮ম": 11, "৯ম": 12, "১০ম": 13 };
@@ -1649,6 +1651,7 @@ openPdfModal = function() {
                     genderText = `(ছাত্র: ${e2b(boysCount)} জন | ছাত্রী: ${e2b(girlsCount)} জন)`;
                 }
 
+                // প্রফেশনাল টাইটেল মেকিং ("বয়স ৬", "প্লে শ্রেণি", "A+ (ব্লাড গ্রুপ)")
                 let displayGroupName = e2b(groupName);
                 if (groupBy === 'classBn' && groupName !== 'অন্যান্য') {
                     displayGroupName += " শ্রেণি";
