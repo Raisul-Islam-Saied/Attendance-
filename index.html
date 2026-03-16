@@ -1937,9 +1937,41 @@ function resetFilter() {
     Toast.fire({ icon: 'info', title: 'ফিল্টার রিসেট করা হয়েছে' });
 }
 
+// স্পেশাল ফাংশন: বাংলা সংখ্যাকে ইংরেজিতে রূপান্তর করে, যাতে "১২" এবং "12" সেম হয়
+function normalizeText(text) {
+    if (text === undefined || text === null) return "";
+    const bnToEn = {'০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9'};
+    return String(text).replace(/[০-৯]/g, d => bnToEn[d] || d).toLowerCase().trim();
+}
+
+// স্পেশাল ফাংশন: যেকোনো নাম দিয়ে ডাটাবেস থেকে ডাটা বের করে আনা
+function getStudentFieldValue(st, fieldKey) {
+    if (fieldKey === 'id' || fieldKey === 'ID') return st.id || st.ID || '';
+    if (fieldKey === 'Roll') return st.roll || st.Roll || '';
+    if (fieldKey === 'ClassBn') return st.classBn || st.ClassBn || '';
+    if (fieldKey === 'StudentNameBn') return st.nameBn || st.StudentNameBn || st.nameEn || '';
+    if (fieldKey === 'Gender') return st.Gender || st.gender || st.Sex || st.sex || '';
+    return st[fieldKey] || '';
+}
+
 function getFilteredData(sourceData) {
     const allRuleItems = document.querySelectorAll('.filter-rule-item');
-    if(allRuleItems.length === 0) return sourceData;
+    
+    // ম্যাজিক ফিক্স: ফাঁকা রুলগুলোকে আগেই বাদ দিয়ে দেওয়া হচ্ছে
+    const validRules = Array.from(allRuleItems).filter(item => {
+        const operator = item.querySelector('.rule-operator').value;
+        if (operator === 'empty' || operator === 'not_empty') return true;
+        if (operator === 'between') {
+            const minInput = item.querySelector('.rule-val-min');
+            const maxInput = item.querySelector('.rule-val-max');
+            return (minInput && minInput.value.trim() !== '') && (maxInput && maxInput.value.trim() !== '');
+        }
+        const valInput = item.querySelector('.rule-val-single');
+        return valInput && valInput.value.trim() !== '';
+    });
+
+    // যদি কোনো সঠিক রুল না থাকে, তাহলে সবাইকে রিটার্ন করবে
+    if(validRules.length === 0) return sourceData;
 
     const classOrderMap = { "প্লে": 1, "নার্সারি": 2, "কেজি": 3, "১ম": 4, "২য়": 5, "৩য়": 6, "৪র্থ": 7, "৫ম": 8, "৬ষ্ঠ": 9, "৭ম": 10, "৮ম": 11, "৯ম": 12, "১০ম": 13 };
 
@@ -1947,7 +1979,7 @@ function getFilteredData(sourceData) {
         let finalResult = false;
         let currentGroupResult = true;
 
-        allRuleItems.forEach((item, index) => {
+        validRules.forEach((item, index) => {
             const field = item.querySelector('.rule-field').value;
             const operator = item.querySelector('.rule-operator').value;
             let connector = index > 0 ? item.querySelector('.rule-connector').value : "";
@@ -1956,23 +1988,15 @@ function getFilteredData(sourceData) {
             let valInputMin = item.querySelector('.rule-val-min');
             let valInputMax = item.querySelector('.rule-val-max');
 
-            // সঠিকভাবে ভ্যালুগুলো নিচ্ছে
             let inputVal = valInput1 ? (valInput1.value || "").trim() : '';
             let inputMin = valInputMin ? (valInputMin.value || "").trim() : '';
             let inputMax = valInputMax ? (valInputMax.value || "").trim() : '';
 
-            // 'nameBn' বা 'classBn' এর মতো পুরনো ডাটা কি-গুলোর সাথে কম্প্যাটিবিলিটির জন্য
-            let actualField = field;
-            if(field === 'StudentNameBn') actualField = 'nameBn';
-            else if(field === 'ClassBn') actualField = 'classBn';
-            else if(field === 'Roll') actualField = 'roll';
-            else if(field === 'Gender') actualField = 'Gender';
-
-            let stVal = st[actualField] || st[field] || st[field.toLowerCase()] || "";
-            if (field === 'Gender') stVal = st.Gender || st.gender || st.sex || "";
+            let stVal = getStudentFieldValue(st, field);
 
             let conditionMet = false;
-            let numStVal = parseFloat(toEn(String(stVal)));
+            let normStVal = normalizeText(stVal);
+            let numStVal = parseFloat(normStVal);
 
             if (operator === 'between') {
                 if (field === 'ClassBn') {
@@ -1981,17 +2005,17 @@ function getFilteredData(sourceData) {
                     let maxRank = classOrderMap[inputMax] || 99;
                     conditionMet = (stRank >= minRank && stRank <= maxRank);
                 } else {
-                    let minNum = parseFloat(toEn(inputMin));
-                    let maxNum = parseFloat(toEn(inputMax));
+                    let minNum = parseFloat(normalizeText(inputMin));
+                    let maxNum = parseFloat(normalizeText(inputMax));
                     conditionMet = (numStVal >= minNum && numStVal <= maxNum);
                 }
             } else {
                 let isClassCmp = field === 'ClassBn';
-                let val1 = isClassCmp ? (classOrderMap[stVal] || 99) : String(stVal).toLowerCase();
-                let val2 = isClassCmp ? (classOrderMap[inputVal] || 99) : inputVal.toLowerCase();
+                let val1 = isClassCmp ? (classOrderMap[stVal] || 99) : normStVal;
+                let val2 = isClassCmp ? (classOrderMap[inputVal] || 99) : normalizeText(inputVal);
 
                 if(operator === '==') conditionMet = (val1 == val2);
-                else if(operator === 'contains') conditionMet = String(val1).includes(String(val2));
+                else if(operator === 'contains') conditionMet = val1.includes(val2);
             }
 
             if (index === 0) currentGroupResult = conditionMet; 
@@ -2100,20 +2124,15 @@ function loadManualData() {
     });
 }
 
-
-    // Mobile back button close modal
+// Mobile back button close modal
 window.addEventListener("popstate", function(event) {
-
     const modal = document.getElementById("student-profile-modal");
-
     if (!modal.classList.contains("hidden")) {
         closeStudentProfile();
-        
     }
-
 });
 
-            
+
 /*if ("serviceWorker" in navigator) {
 
   navigator.serviceWorker.register("./service-worker.js")
