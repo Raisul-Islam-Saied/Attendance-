@@ -1428,10 +1428,9 @@ function addPdfColumn(type) {
     });
     renderTableColumns();
 }
-
 async function generateSuperPDF() {
     const btn = document.getElementById('btn-generate-pdf');
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> তৈরি হচ্ছে...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> প্রস্তুত হচ্ছে...';
     btn.disabled = true;
 
     // 1. Get Filtered Data
@@ -1453,9 +1452,9 @@ async function generateSuperPDF() {
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600;700;800&display=swap');
             
-            .pdf-body { font-family: 'Noto Sans Bengali', sans-serif; padding: 20px; color: #000; }
+            .pdf-body { font-family: 'Noto Sans Bengali', sans-serif; padding: 15mm; color: #000; background: white; }
             .hp-class-section { margin-bottom: 25px; }
-            .hp-class-header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 12px; }
+            .hp-class-header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 12px; page-break-after: avoid; }
             .hp-class-name { font-size: 22px; font-weight: 800; color: #000; }
             .hp-class-stats { font-size: 18px; font-weight: 600; color: #222; }
             
@@ -1469,9 +1468,14 @@ async function generateSuperPDF() {
             
             /* অফিসিয়াল টেবিল স্টাইল */
             .official-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-family: 'Noto Sans Bengali', sans-serif; }
-            .official-table th { background-color: #f1f5f9; border: 1.5px solid #000; padding: 10px 8px; font-size: 14px; font-weight: 800; color: #000; text-align: center; }
+            
+            /* প্রিন্ট করার সময় টেবিলের হেডার যেন সব পেজে থাকে */
+            .official-table thead { display: table-header-group; }
+            .official-table tr { page-break-inside: avoid; } /* রো যেন মাঝখান থেকে না কাটে */
+            
+            .official-table th { background-color: #f1f5f9 !important; border: 1.5px solid #000; padding: 10px 8px; font-size: 14px; font-weight: 800; color: #000; text-align: center; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .official-table td { border: 1.5px solid #000; font-size: 13px; font-weight: 600; color: #111; vertical-align: middle; }
-            .official-table tr:nth-child(even) { background-color: #f8fafc; }
+            .official-table tr:nth-child(even) td { background-color: #f8fafc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         </style>
         <div class="pdf-body">
             ${title ? `<h1 style="text-align: center; font-size: 26px; font-weight: 800; margin-bottom: ${subtitle ? '5px' : '20px'}; color: #000;">${title}</h1>` : ''}
@@ -1480,7 +1484,7 @@ async function generateSuperPDF() {
 
     // --- TABLE FORMAT LOGIC (OFFICIAL) ---
     if (pdfConfig.format === 'table') {
-        const rowHeight = document.getElementById('pdf-row-height').value; // e.g., py-2
+        const rowHeight = document.getElementById('pdf-row-height').value;
         const pd = rowHeight === 'py-1' ? '6px 8px' : rowHeight === 'py-4' ? '14px 8px' : '10px 8px';
 
         let totalBoysAll = 0; let totalGirlsAll = 0;
@@ -1493,7 +1497,6 @@ async function generateSuperPDF() {
         htmlContent += `<table class="official-table"><thead><tr>`;
         
         pdfConfig.tableColumns.forEach(col => {
-            // ক্রমিক নং বা রোল হলে টেক্সট মাঝে থাকবে, নাহলে বামে
             let align = (col.field === 'serial' || col.field === 'roll' || col.type === 'blank') ? 'center' : 'left';
             htmlContent += `<th style="width: ${col.width}%; text-align: ${align};">${col.label}</th>`;
         });
@@ -1511,7 +1514,7 @@ async function generateSuperPDF() {
                     cellData = e2b(index + 1);
                 } else {
                     cellData = s[col.field] || s[col.field.toLowerCase()] || s[col.field.charAt(0).toUpperCase() + col.field.slice(1)] || '-';
-                    if (col.field === 'roll') cellData = e2b(cellData); // রোল নাম্বার বাংলায় কনভার্ট
+                    if (col.field === 'roll') cellData = e2b(cellData);
                 }
                 htmlContent += `<td style="padding: ${pd}; text-align: ${align};">${cellData}</td>`;
             });
@@ -1519,7 +1522,6 @@ async function generateSuperPDF() {
         });
         htmlContent += `</tbody></table>`;
         
-        // টেবিলের নিচেও গ্র্যান্ড সামারি
         htmlContent += `
             <div class="hp-footer-summary">
                 <div class="hp-total-text">সর্বমোট শিক্ষার্থী: ${e2b(dataToExport.length)} জন</div>
@@ -1619,28 +1621,23 @@ async function generateSuperPDF() {
 
     htmlContent += `</div>`;
 
-    const opt = {
-        margin:       [15, 10, 15, 10], 
-        filename:     `${title || 'Student_Data'}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
+    // ছবি বানানোর বদলে আমরা সরাসরি HTML কে প্রিন্ট ইঞ্জিনে পাঠিয়ে দেব
+    const printEngine = document.getElementById('print-engine');
+    printEngine.innerHTML = htmlContent;
+    
+    closePdfModal();
 
-    try {
-        await html2pdf().set(opt).from(htmlContent).save();
-        closePdfModal();
-        Toast.fire({ icon: 'success', title: 'PDF সফলভাবে সেভ হয়েছে!' });
-    } catch (e) {
-        console.error("PDF Error:", e);
-        Swal.fire('ত্রুটি', 'পিডিএফ তৈরি করতে সমস্যা হয়েছে!', 'error');
-    } finally {
+    // আধা সেকেন্ড পর প্রিন্ট ডায়ালগ ওপেন হবে
+    setTimeout(() => {
+        window.print();
+        
+        // প্রিন্ট কমান্ড দেওয়ার পর বাটনটি আগের অবস্থায় ফিরে আসবে
         btn.innerHTML = '<i class="fa-solid fa-print"></i> পিডিএফ তৈরি করুন';
         btn.disabled = false;
-    }
+        
+        Toast.fire({ icon: 'success', title: 'প্রিন্ট অপশন ওপেন হয়েছে!' });
+    }, 500);
 }
-
-
     
     // Mobile back button close modal
 window.addEventListener("popstate", function(event) {
