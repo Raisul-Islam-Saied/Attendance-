@@ -986,12 +986,13 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
 
         const student = state.students[studentId];  
 
-        // --- NEW LOGIC: NO DUPLICATE ERROR, INSTEAD UPDATE & MOVE TO TOP ---
-        const existingIndex = state.historyData.findIndex(r => r.id === studentId);
+                const existingIndex = state.historyData.findIndex(r => r.id === studentId);
         if (existingIndex !== -1) {
-            // Remove the old entry
-            state.historyData.splice(existingIndex, 1);
+            // যদি আগে থেকেই থাকে, তবে ওয়ার্নিং দিয়ে থেমে যাবে এবং আগের ডাটা রিপ্লেস করবে না
+            handleScanResult('error', 'এই আইডিটি আগেই হিস্ট্রিতে আছে!', null);
+            return; 
         }
+
 
         const now = new Date();  
         const record = {  
@@ -2317,12 +2318,17 @@ function loadManualData() {
     const dateStr = now.toLocaleDateString('bn-BD', { year: 'numeric', month: 'short', day: 'numeric' });
     const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-    filteredDB.forEach(student => {
+        filteredDB.forEach(student => {
         const studentId = student.id;
         const existingIndex = state.historyData.findIndex(r => r.id === studentId);
-        if (existingIndex !== -1) { state.historyData.splice(existingIndex, 1); }
+        
+        // যদি হিস্ট্রিতে আগে থেকেই থাকে, তাহলে স্কিপ করবে (রিপ্লেস বা ডিলিট করবে না)
+        if (existingIndex !== -1) { 
+            return; 
+        }
         
         state.historyData.unshift({
+
             id: studentId,
             timestamp: now.getTime(),
             dateStr: dateStr,
