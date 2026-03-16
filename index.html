@@ -1268,33 +1268,53 @@ const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d])
      * EXPORT & DATA MANAGEMENT  
      * ==========================================  
      */  
-    function exportData() {  
-        const allHistory = state.historyData || [];  
-        if (allHistory.length === 0) {  
-            Swal.fire('ফাঁকা লিস্ট', 'এক্সপোর্ট করার মতো কোনো ডেটা নেই।', 'info');  
-            return;  
-        }  
+function exportData() {  
+    // সার্চ বক্সে যা লেখা আছে তা নিন
+    const term = document.getElementById('search-input')?.value.toLowerCase() || '';
+    
+    // হিস্ট্রি থেকে ডাটা নিন
+    let dataToExport = [...state.historyData];
+    
+    // যদি সার্চ বক্সে কিছু লেখা থাকে, তবে ডাটা ফিল্টার করুন
+    if(term) {
+        dataToExport = dataToExport.filter(record => {
+            const s = state.students[record.id];
+            if (!s) return false;
+            return (
+                (s.nameBn && s.nameBn.includes(term)) || 
+                (s.nameEn && s.nameEn.toLowerCase().includes(term)) || 
+                (record.id && record.id.includes(term))
+            );
+        });
+    }
 
-        let csv = "Date,Time,ID,Name(Bn),Name(En),Class,Roll\n";  
-          
-        allHistory.forEach(r => {  
-            const s = state.students[r.id] || {};  
-            const nameBn = s.nameBn ? s.nameBn.replace(/,/g, " ") : "";   
-            const nameEn = s.nameEn ? s.nameEn.replace(/,/g, " ") : "";  
-            const classBn = s.classBn ? s.classBn.replace(/,/g, " ") : "";  
-            const roll = s.roll || "";  
-              
-            csv += `"${r.dateStr}","${r.timeStr}",${r.id},${nameBn},${nameEn},${classBn},${roll}\n`;  
-        });  
-
-        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });  
-        const link = document.createElement("a");  
-        link.href = URL.createObjectURL(blob);  
-        link.download = `All_Search_History.csv`;  
-        link.click();  
-          
-        Toast.fire({ icon: 'success', title: 'ফাইল ডাউনলোড হয়েছে' });  
+    if (dataToExport.length === 0) {  
+        Swal.fire('ফাঁকা লিস্ট', 'এক্সপোর্ট করার মতো কোনো ডাটা খুঁজে পাওয়া যায়নি।', 'info');  
+        return;  
     }  
+
+    let csv = "Date,Time,ID,Name(Bn),Name(En),Class,Roll\n";  
+      
+    dataToExport.forEach(r => {  
+        const s = state.students[r.id] || {};  
+        const nameBn = s.nameBn ? s.nameBn.replace(/,/g, " ") : "";   
+        const nameEn = s.nameEn ? s.nameEn.replace(/,/g, " ") : "";  
+        const classBn = s.classBn ? s.classBn.replace(/,/g, " ") : "";  
+        const roll = s.roll || "";  
+          
+        csv += `"${r.dateStr}","${r.timeStr}",${r.id},${nameBn},${nameEn},${classBn},${roll}\n`;  
+    });  
+
+    // ফাইল ডাউনলোড করার প্রসেস
+    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });  
+    const link = document.createElement("a");  
+    link.href = URL.createObjectURL(blob);  
+    link.download = term ? `Filtered_History_${term}.csv` : `Full_Search_History.csv`;  
+    link.click();  
+      
+    Toast.fire({ icon: 'success', title: 'ফিল্টার হওয়া ডাটা এক্সপোর্ট হয়েছে' });  
+}
+  
     function copyAllIds() {
         // বর্তমান সার্চ বক্সে কিছু লেখা থাকলে সেটা অনুযায়ী ডেটা ফিল্টার করা
         const term = document.getElementById('search-input').value.toLowerCase();
@@ -1590,7 +1610,7 @@ async function generateSuperPDF() {
             .hp-grid { column-gap: 10px; }
             .hp-item { display: flex; align-items: baseline; gap: 5px; padding: 3px 0; font-size: 18px; page-break-inside: avoid; }
             .hp-serial { flex-shrink: 0; min-width: 35px; font-weight: 700; font-family: 'Noto Serif Bengali', monospace; }
-            .hp-roll { flex-shrink: 0; min-width: 40px; font-weight: 700; font-family: 'Noto Serif Bengali', monospace; }
+            .hp-roll { flex-shrink: 0; min-width: 35px; font-weight: 700; font-family: 'Noto Serif Bengali', monospace; }
             .hp-name { flex-grow: 1; font-weight: 600; line-height: 1.3; white-space: normal; word-wrap: break-word; }
             
             .hp-footer-summary { margin-top: 25px; border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 10px; text-align: center; page-break-inside: avoid; }
