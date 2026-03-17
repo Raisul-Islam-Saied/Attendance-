@@ -1317,8 +1317,10 @@ const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d])
     
     cards.forEach(card => {
         let startX = 0;
+        let startY = 0; // স্ক্রল প্রোটেকশনের জন্য
         let currentX = 0;
         let isDragging = false;
+        let isScrolling = false; // স্ক্রল হচ্ছে কি না চেক করার জন্য
         
         // Touch Events for Mobile Swipe
         card.addEventListener('touchstart', handleStart, {passive: true});
@@ -1327,7 +1329,9 @@ const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d])
         
         function handleStart(e) {
             startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
             isDragging = true;
+            isScrolling = false;
             card.style.transition = 'none'; // সোয়াইপ করার সময় স্মুথ রাখার জন্য
             
             // একটি সোয়াইপ করলে অন্য কোনো কার্ড ওপেন থাকলে তা বন্ধ হয়ে যাবে
@@ -1342,8 +1346,17 @@ const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d])
         function handleMove(e) {
             if (!isDragging) return;
             const x = e.touches[0].clientX;
+            const y = e.touches[0].clientY;
             const deltaX = x - startX;
+            const deltaY = y - startY;
             
+            // যদি ব্যবহারকারী ডানে-বামের চেয়ে উপর-নিচে বেশি টানে (স্ক্রল করে), তাহলে সোয়াইপ লক করে দেব
+            if (Math.abs(deltaY) > Math.abs(deltaX) && currentX === 0) {
+                isScrolling = true;
+                return;
+            }
+            if (isScrolling) return;
+
             // শুধু বাম দিকে সোয়াইপ (সর্বোচ্চ -80px)
             if (deltaX < 0 && card.dataset.open !== "true") {
                 currentX = Math.max(deltaX, -80);
@@ -1357,10 +1370,12 @@ const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d])
         
         function handleEnd(e) {
             isDragging = false;
+            if (isScrolling) return; // স্ক্রল করলে কিছু করার দরকার নেই
+
             card.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
             
-            // যদি অর্ধেক এর বেশি সোয়াইপ হয়, তবে ডিলিট বাটন পুরোপুরি ওপেন হয়ে যাবে
-            if (currentX < -40) {
+            // এখানে থ্রেশহোল্ড -40 থেকে -65 করে দিয়েছি। অর্থাৎ বেশি টানতে হবে!
+            if (currentX < -65) {
                 card.style.transform = 'translateX(-80px)';
                 card.dataset.open = "true";
                 currentX = -80;
@@ -1371,8 +1386,8 @@ const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d])
             }
         }
     });
-}
-
+}        
+    
 function deleteHistoryItem(event, studentId, timestamp) {
     // বাটনে ক্লিক করলে যেন ভুলে প্রোফাইল ওপেন না হয়ে যায়, সেজন্য ইভেন্ট স্টপ করা
     event.stopPropagation();
