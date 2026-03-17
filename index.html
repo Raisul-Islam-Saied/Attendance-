@@ -1408,17 +1408,15 @@ function deleteHistoryItem(event, studentId, timestamp) {
      * EXPORT & DATA MANAGEMENT  
      * ==========================================  
      */  
-    function exportData() {  
-        // স্ক্রিনে বর্তমানে যে ডাটাগুলো দেখা যাচ্ছে (অ্যাডভান্সড ফিল্টার বা সাধারণ সার্চ), সেগুলোর আইডি DOM থেকে নেয়া
+        function exportData() {  
+        // স্ক্রিনে বর্তমানে যে ডাটাগুলো দেখা যাচ্ছে সেগুলোর আইডি DOM থেকে নেয়া
         const historyListElements = document.querySelectorAll('#full-history-list div[onclick^="openStudentProfile"]');
         
         let dataToExport = [];
         historyListElements.forEach(el => {
-            // onclick থেকে আইডি বের করা
             const match = el.getAttribute('onclick').match(/'([^']+)'/);
             if (match && match[1]) {
                 const id = match[1];
-                // historyData থেকে ওই আইডির সম্পূর্ণ রেকর্ডটা খুঁজে বের করা
                 const record = state.historyData.find(r => r.id === id);
                 if (record) {
                     dataToExport.push(record);
@@ -1431,31 +1429,67 @@ function deleteHistoryItem(event, studentId, timestamp) {
             return;  
         }  
 
-        let csv = "Date,Time,ID,Name(Bn),Name(En),Class,Roll\n";  
-          
-        dataToExport.forEach(r => {  
-            const s = state.students[r.id] || {};  
-            const nameBn = s.nameBn ? s.nameBn.replace(/,/g, " ") : "";   
-            const nameEn = s.nameEn ? s.nameEn.replace(/,/g, " ") : "";  
-            const classBn = s.classBn ? s.classBn.replace(/,/g, " ") : "";  
-            const roll = s.roll || "";  
-              
-            csv += `"${r.dateStr}","${r.timeStr}",${r.id},${nameBn},${nameEn},${classBn},${roll}\n`;  
-        });  
-
-        // ফাইল ডাউনলোড করার প্রসেস
-        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });  
-        const link = document.createElement("a");  
-        link.href = URL.createObjectURL(blob);  
-        
-        // ফাইলের নাম ডাইনামিক করা
+        // ডিফল্ট ফাইলের নাম সেট করা
         const term = document.getElementById('search-input')?.value.trim();
-        link.download = term ? `Filtered_History_${term}.csv` : `Filtered_Export.csv`;  
-        link.click();  
-          
-        if(typeof Toast !== 'undefined') {
-            Toast.fire({ icon: 'success', title: 'ফিল্টার হওয়া ডাটা এক্সপোর্ট হয়েছে' });  
-        }
+        const defaultFileName = term ? `Filtered_History_${term}` : `Student_Data_Export`;
+
+        // নেক্সট-লেভেল মডাল (SweetAlert2 Custom UI)
+        Swal.fire({
+            title: '<h3 class="text-xl font-bold text-slate-800"><i class="fa-solid fa-file-csv text-green-600 mr-2"></i>CSV এক্সপোর্ট</h3>',
+            html: `<p class="text-sm text-slate-500 mb-4">মোট <b class="text-indigo-600">${e2b(dataToExport.length)}</b> জনের ডাটা এক্সপোর্ট হচ্ছে। ফাইলের নাম দিন:</p>`,
+            input: 'text',
+            inputValue: defaultFileName,
+            inputPlaceholder: 'ফাইলের নাম লিখুন...',
+            showCancelButton: true,
+            confirmButtonColor: '#4F46E5', // indigo-600
+            cancelButtonColor: '#f1f5f9',  // slate-100
+            confirmButtonText: '<i class="fa-solid fa-download"></i> ডাউনলোড করুন',
+            cancelButtonText: '<span class="text-slate-600 font-bold">বাতিল</span>',
+            customClass: {
+                popup: 'rounded-[24px] pb-5 shadow-2xl border border-slate-100',
+                input: 'text-center font-bold text-slate-700 bg-slate-50 border border-slate-200 focus:border-indigo-500 rounded-xl outline-none py-3',
+                confirmButton: 'rounded-xl shadow-md shadow-indigo-200 font-bold px-6 py-3 transition-transform active:scale-95',
+                cancelButton: 'rounded-xl px-6 py-3 transition-colors hover:bg-slate-200'
+            },
+            inputValidator: (value) => {
+                if (!value.trim()) {
+                    return 'ফাইলের নাম ফাঁকা রাখা যাবে না!';
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                let fileName = result.value.trim();
+                
+                // ফাইলের নামের শেষে .csv না থাকলে স্বয়ংক্রিয়ভাবে বসিয়ে দেওয়া
+                if (!fileName.toLowerCase().endsWith('.csv')) {
+                    fileName += '.csv';
+                }
+
+                // CSV ফাইল তৈরি করা
+                let csv = "Date,Time,ID,Name(Bn),Name(En),Class,Roll\n";  
+                  
+                dataToExport.forEach(r => {  
+                    const s = state.students[r.id] || {};  
+                    const nameBn = s.nameBn ? s.nameBn.replace(/,/g, " ") : "";   
+                    const nameEn = s.nameEn ? s.nameEn.replace(/,/g, " ") : "";  
+                    const classBn = s.classBn ? s.classBn.replace(/,/g, " ") : "";  
+                    const roll = s.roll || "";  
+                      
+                    csv += `"${r.dateStr}","${r.timeStr}",${r.id},${nameBn},${nameEn},${classBn},${roll}\n`;  
+                });  
+
+                // ডাউনলোড প্রসেস
+                const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });  
+                const link = document.createElement("a");  
+                link.href = URL.createObjectURL(blob);  
+                link.download = fileName;  
+                link.click();  
+                  
+                if(typeof Toast !== 'undefined') {
+                    Toast.fire({ icon: 'success', title: 'সফলভাবে ডাউনলোড হয়েছে!' });  
+                }
+            }
+        });
     }
 
     function copyAllIds() {
@@ -2055,8 +2089,13 @@ async function generateSuperPDF() {
         window.print();
         btn.innerHTML = '<i class="fa-solid fa-print"></i> তৈরি করুন';
         btn.disabled = false;
-           setTimeout(() => { document.title = originalTitle; }, 2000);
+           window.addEventListener('afterprint', function() {
+            document.title = originalTitle;
+        }, { once: true });
 
+        window.addEventListener('focus', function() {
+            document.title = originalTitle;
+        }, { once: true });
     }, 500);
 }
 
