@@ -1401,7 +1401,7 @@ function updateDashboardUI() {
 
             });  
         } 
-        // ২. সকল শিক্ষার্থী ভিউ (All Students View)
+                // ২. সকল শিক্ষার্থী ভিউ (All Students View)
         else {
             if(listTitle) listTitle.innerText = 'সকল শিক্ষার্থী (ডাটাবেস)';
             if(toggleBtnIcon) toggleBtnIcon.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i>';
@@ -1416,35 +1416,38 @@ function updateDashboardUI() {
             // আজ এবং কালকের তারিখ বের করা
             const today = new Date();
             today.setHours(0, 0, 0, 0);
+            const todayTime = today.getTime();
+            const currentYear = today.getFullYear();
             
             const tomorrow = new Date(today);
             tomorrow.setDate(tomorrow.getDate() + 1);
 
-            // --- নতুন: যাদের জন্মদিন সামনে তারা আগে থাকবে (সর্টিং লজিক) ---
-            allStudents.sort((a, b) => {
-                const getNextBdayDiff = (st) => {
-                    const dobStr = st.DOB || st.dob;
-                    if (!dobStr) return Infinity; // জন্মদিন না থাকলে লিস্টের শেষে যাবে
-                    
+            // --- স্পিড অপটিমাইজেশন: সর্টিংয়ের আগে একবার হিসাব করে নেওয়া (স্লো হবে না) ---
+            const studentsWithBdayInfo = allStudents.map(s => {
+                let diff = Infinity;
+                const dobStr = s.DOB || s.dob;
+                if (dobStr) {
                     const dob = new Date(dobStr);
-                    if (isNaN(dob.getTime())) return Infinity;
-                    
-                    const bday = new Date(dob);
-                    bday.setFullYear(today.getFullYear());
-                    bday.setHours(0, 0, 0, 0);
-                    
-                    // এই বছরের জন্মদিন পার হয়ে গেলে আগামী বছর ধরবে
-                    if (bday < today) {
-                        bday.setFullYear(today.getFullYear() + 1);
+                    if (!isNaN(dob.getTime())) {
+                        dob.setFullYear(currentYear);
+                        dob.setHours(0, 0, 0, 0);
+                        if (dob.getTime() < todayTime) {
+                            dob.setFullYear(currentYear + 1);
+                        }
+                        diff = dob.getTime() - todayTime;
                     }
-                    return bday.getTime() - today.getTime();
-                };
-
-                return getNextBdayDiff(a) - getNextBdayDiff(b);
+                }
+                return { student: s, diff: diff };
             });
+
+            // দ্রুত সর্টিং (সুপার ফাস্ট)
+            studentsWithBdayInfo.sort((a, b) => a.diff - b.diff);
+
+            // সর্ট করা ডাটা আবার মেইন ভ্যারিয়েবলে রাখা
+            allStudents = studentsWithBdayInfo.map(item => item.student);
             // --------------------------------------------------------
 
-            allStudents.forEach(s => {
+            allStudents.slice(0, 300).forEach(s => {
                 const img = s.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.nameEn || 'S')}&background=random`;  
                 
                 // জন্মদিন চেক করার লজিক (ছোট ব্যাজ)
@@ -1466,7 +1469,7 @@ function updateDashboardUI() {
                         <div class="relative shrink-0">
                             <img src="${img}" class="w-12 h-12 rounded-full object-cover border-2 border-emerald-50 shadow-sm" onerror="this.src='https://ui-avatars.com/api/?name=S&background=random'">
                         </div>
-                     <div class="flex-1 min-w-0">  
+                        <div class="flex-1 min-w-0">  
                             <div class="flex items-center gap-1.5 mb-1">
                                 <h4 class="font-bold text-slate-800 text-[14px] truncate">${s.nameBn || s.StudentNameBn || s.nameEn || 'অজানা'}</h4>  
                                 ${bdayBadge}
@@ -1477,14 +1480,13 @@ function updateDashboardUI() {
                                 <span class="bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded text-[9px] font-bold">${s.classBn || s.ClassBn || '-'}</span>
                             </div>  
                         </div>  
-
-                        
                         <div class="shrink-0 text-indigo-400 opacity-40">
                             <i class="fa-solid fa-chevron-right text-xs"></i>
                         </div>
                     </div>`;  
             });
         }
+
     }
 
       function renderHistoryUI(searchTerm = '') {  
