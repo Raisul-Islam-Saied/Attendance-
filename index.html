@@ -2198,16 +2198,32 @@ function openPdfModal() {
     
     renderTableColumns();
     renderPlainFields(); // ফিল্ড বাটনগুলো লোড করবে
+    
+    // মোবাইল ব্যাক বাটনের জন্য হিস্ট্রি পুশ করা
+    history.pushState({ pdfModalOpen: true }, "");
 }
 
-
-function closePdfModal() {
+function closePdfModal(fromPopState = false) {
     document.getElementById('pdf-export-modal').classList.add('opacity-0');
     document.getElementById('pdf-modal-card').classList.add('scale-95');
     setTimeout(() => {
         document.getElementById('pdf-export-modal').classList.add('hidden');
     }, 300);
+
+    // ম্যানুয়ালি (বাটন বা বাইরে ক্লিক করে) ক্লোজ করলে হিস্ট্রি ক্লিন করা
+    if (fromPopState !== true && history.state && history.state.pdfModalOpen) {
+        history.back();
+    }
 }
+
+// মডালের বাইরে (Backdrop) ক্লিক করলে বন্ধ হওয়ার লজিক
+document.getElementById('pdf-export-modal').addEventListener('click', function(e) {
+    // ইভেন্ট টার্গেট যদি সরাসরি মডাল ব্যাকগ্রাউন্ড হয়, তাহলেই বন্ধ হবে
+    if (e.target === this) {
+        closePdfModal();
+    }
+});
+
 
 function setPdfFormat(format) {
     pdfConfig.format = format;
@@ -3174,14 +3190,20 @@ function loadManualData() {
 window.addEventListener("popstate", function(event) {
     // স্টুডেন্ট প্রোফাইল মডাল চেক
     const profileModal = document.getElementById("student-profile-modal");
-    if (!profileModal.classList.contains("hidden")) {
+    if (profileModal && !profileModal.classList.contains("hidden")) {
         closeStudentProfile();
     }
 
     // ফিল্টার মডাল চেক
     const filterModal = document.getElementById("filter-modal");
-    if (!filterModal.classList.contains("hidden")) {
+    if (filterModal && !filterModal.classList.contains("hidden")) {
         closeFilterModal();
+    }
+
+    // পিডিএফ এক্সপোর্ট মডাল চেক
+    const pdfModal = document.getElementById("pdf-export-modal");
+    if (pdfModal && !pdfModal.classList.contains("hidden")) {
+        closePdfModal(true); // true পাঠানো হচ্ছে যাতে ডাবল back() ফায়ার না হয়
     }
 });
 if ("serviceWorker" in navigator) {
