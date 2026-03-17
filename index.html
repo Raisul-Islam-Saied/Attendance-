@@ -1202,7 +1202,7 @@ const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d])
         });  
     }  
 
-    function renderHistoryUI(searchTerm = '') {  
+      function renderHistoryUI(searchTerm = '') {  
         const listContainer = document.getElementById('full-history-list');  
         let filteredData = [...state.historyData];  
           
@@ -1216,10 +1216,8 @@ const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d])
             });
         }
 
-              // 2. Advanced Sorting Logic (Powerful & Smart Sort)
+        // 2. Advanced Sorting Logic
         const sortVal = document.getElementById('sort-history').value;
-        
-        // ক্লাসের লজিক্যাল সিরিয়াল (ছোট থেকে বড়)
         const classOrderMap = { "প্লে": 1, "নার্সারি": 2, "কেজি": 3, "১ম": 4, "২য়": 5, "৩য়": 6, "৪র্থ": 7, "৫ম": 8, "৬ষ্ঠ": 9, "৭ম": 10, "৮ম": 11, "৯ম": 12, "১০ম": 13 };
 
         filteredData.sort((a, b) => {
@@ -1236,24 +1234,20 @@ const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d])
             }
             
             if (sortVal === 'class_asc') {
-                // ১. প্রথমে ক্লাস অনুযায়ী সাজানো (লজিক্যাল র‍্যাংক)
                 const classA = (sA.classBn || '').trim();
                 const classB = (sB.classBn || '').trim();
                 
-                const rankA = classOrderMap[classA] || 99; // অজানা ক্লাস থাকলে সবার শেষে যাবে
+                const rankA = classOrderMap[classA] || 99; 
                 const rankB = classOrderMap[classB] || 99;
 
                 if (rankA !== rankB) {
-                    return rankA - rankB; // ছোট ক্লাস আগে আসবে
+                    return rankA - rankB; 
                 } 
                 else {
-                    // ২. ক্লাস একই হলে রোল অনুযায়ী সাজানো (বাংলা সংখ্যাকে ইংরেজিতে রূপান্তর করে সর্ট করা)
                     const b2e = str => String(str).replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d));
-                    
                     const rollA = parseInt(b2e(sA.roll || '99999'), 10) || 99999;
                     const rollB = parseInt(b2e(sB.roll || '99999'), 10) || 99999;
-                    
-                    return rollA - rollB; // ছোট রোল আগে আসবে
+                    return rollA - rollB; 
                 }
             }
             return 0;
@@ -1261,11 +1255,15 @@ const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d])
 
         document.getElementById('history-count').innerText = e2b(filteredData.length);  
 
+        // === প্রিমিয়াম এম্পটি স্টেট (No Data Found) ===
         if (filteredData.length === 0) {  
             listContainer.innerHTML = `  
-                <div class="flex flex-col items-center justify-center h-48 text-slate-400">  
-                    <i class="fa-solid fa-folder-open text-4xl mb-3"></i>  
-                    <p>কোনো ডেটা পাওয়া যায়নি</p>  
+                <div class="flex flex-col items-center justify-center h-64 text-slate-400 opacity-80 fade-in">
+                    <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm border border-slate-100">
+                        <i class="fa-solid fa-box-open text-4xl text-indigo-300"></i>
+                    </div>
+                    <p class="font-bold text-slate-500 text-sm">কোনো ডেটা পাওয়া যায়নি</p>
+                    <p class="text-xs mt-1">নতুন শিক্ষার্থী স্ক্যান করুন বা অন্য নাম খুঁজুন</p>
                 </div>`;  
             return;  
         }  
@@ -1274,38 +1272,63 @@ const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d])
         filteredData.forEach(record => {  
             const s = state.students[record.id] || { nameBn: 'অজানা', classBn: '-' };  
             const img = s.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.nameEn || 'S')}&background=random`;  
+            
             const parts = record.timeStr.split(':');
-const timeOnly = parts[0] + ':' + parts[1] + ' ' + record.timeStr.split(' ')[1];
-const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+            const timeOnly = parts[0] + ':' + parts[1] + ' ' + record.timeStr.split(' ')[1];
+            const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
             const dateBn = record.dateStr.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+
+        // === রিডিজাইন করা প্রিমিয়াম কার্ড ===
         html += `  
-            <div class="relative overflow-hidden rounded-2xl mb-3 shadow-sm border border-slate-100 bg-red-500">
-                <div onclick="deleteHistoryItem(event, '${record.id}', ${record.timestamp})" class="absolute inset-y-0 right-0 w-[80px] flex flex-col items-center justify-center text-white cursor-pointer active:bg-red-600 transition-colors">
-                    <i class="fa-solid fa-trash-can text-xl mb-1"></i>
-                    <span class="text-[10px] font-bold">মুছুন</span>
+            <div class="relative overflow-hidden rounded-[20px] mb-3.5 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-slate-100 bg-gradient-to-r from-red-500 to-rose-600">
+                
+                <div onclick="deleteHistoryItem(event, '${record.id}', ${record.timestamp})" class="absolute inset-y-0 right-0 w-[85px] flex flex-col items-center justify-center text-white cursor-pointer active:bg-red-700 transition-colors z-0">
+                    <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mb-1 backdrop-blur-sm">
+                        <i class="fa-solid fa-trash-can text-lg"></i>
+                    </div>
+                    <span class="text-[10px] font-bold tracking-wide">মুছুন</span>
                 </div>
                 
-                <div onclick="openStudentProfile('${record.id}')" class="relative bg-white p-3.5 flex items-center gap-4 cursor-pointer swipeable-card w-full h-full z-10 transition-transform">  
-                    <img src="${img}" class="w-12 h-12 rounded-full object-cover border-2 border-indigo-50 shrink-0 pointer-events-none" onerror="this.src='https://ui-avatars.com/api/?name=S&background=random'">  
+                <div onclick="openStudentProfile('${record.id}')" class="relative bg-white p-4 flex items-center gap-3.5 cursor-pointer swipeable-card w-full h-full z-10 transition-transform duration-300 ease-out rounded-[20px]" data-open="false">  
+                    
+                    <div class="relative shrink-0">
+                        <img src="${img}" class="w-14 h-14 rounded-full object-cover border-2 border-indigo-50 shadow-sm pointer-events-none" onerror="this.src='https://ui-avatars.com/api/?name=S&background=random'">  
+                        <div class="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-green-100 border-2 border-white rounded-full flex items-center justify-center pointer-events-none">
+                            <i class="fa-solid fa-check text-[8px] text-green-600"></i>
+                        </div>
+                    </div>
+
                     <div class="flex-1 min-w-0 pointer-events-none">  
-                        <h4 class="font-bold text-slate-800 text-sm truncate">${s.nameBn}</h4>  
-                        <div class="flex items-center gap-2 mt-1 text-xs text-slate-500">  
-                            <span class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">আইডি: ${record.id}</span>  
-                            <span>রোল: ${s.roll || '-'}</span>  
-                            <span class="hidden sm:inline">• শ্রেণী: ${s.classBn || '-'}</span>
+                        <h4 class="font-bold text-slate-800 text-[15px] truncate leading-tight mb-1.5">${s.nameBn}</h4>  
+                        <div class="flex flex-wrap items-center gap-1.5">  
+                            <span class="inline-flex items-center gap-1 bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md text-[10px] font-bold border border-indigo-100/50">
+                                <i class="fa-regular fa-id-badge"></i> ${record.id}
+                            </span>  
+                            <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md text-[10px] font-bold border border-emerald-100/50">
+                                <i class="fa-solid fa-hashtag"></i> ${s.roll || '-'}
+                            </span>  
+                            <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-600 px-2 py-0.5 rounded-md text-[10px] font-bold border border-amber-100/50">
+                                <i class="fa-solid fa-graduation-cap"></i> ${s.classBn || '-'}
+                            </span>
                         </div>  
                     </div>  
-                    <div class="text-[10px] font-medium text-slate-400 text-right flex flex-col justify-center pointer-events-none shrink-0">  
-                        <span class="text-xs text-slate-600 font-bold"><i class="fa-regular fa-clock mr-0.5"></i> ${timeBn}</span>
-                        <span>${dateBn}</span>
+
+                    <div class="text-right flex flex-col justify-center items-end pointer-events-none shrink-0 gap-1 pl-2 border-l border-slate-50">  
+                        <span class="text-[11px] text-slate-700 font-bold bg-slate-100 px-2 py-0.5 rounded-lg flex items-center gap-1">
+                            <i class="fa-regular fa-clock text-slate-400"></i> ${timeBn}
+                        </span>
+                        <span class="text-[9px] text-slate-400 font-medium tracking-wide pr-1">${dateBn}</span>
                     </div>  
                 </div>  
             </div>
         `;  
         });  
         listContainer.innerHTML = html;  
-                initSwipeToDelete(); // ডাটা রেন্ডার হওয়ার পর সোয়াইপ ইঞ্জিন চালু হবে
-
+        
+        // লিস্ট রেন্ডার হওয়ার পর সোয়াইপ ইঞ্জিন চালু হবে
+        setTimeout(() => {
+            initSwipeToDelete(); 
+        }, 50);
     }  
 
     function filterHistory() {  
