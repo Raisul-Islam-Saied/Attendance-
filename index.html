@@ -1848,15 +1848,15 @@ async function generateSuperPDF() {
         });
         htmlContent += `</tr></thead><tbody>`;
 
-        dataToExport.forEach((s, index) => {
+                dataToExport.forEach((s, index) => {
             htmlContent += `<tr>`;
             pdfConfig.tableColumns.forEach(col => {
                 let cellData = '';
                 let align = (col.field === 'serial' || col.field === 'roll' || col.type === 'blank') ? 'center' : 'left';
                 
-                if(col.type === 'blank') {
+                if (col.type === 'blank') {
                     cellData = e2b(col.default || '');
-                                } else if(col.field === 'serial') {
+                } else if (col.field === 'serial') {
                     cellData = e2b(index + 1);
                 } else {
                     let rawVal = s[col.field] || s[col.field.toLowerCase()] || s[col.field.charAt(0).toUpperCase() + col.field.slice(1)] || '-';
@@ -1877,14 +1877,12 @@ async function generateSuperPDF() {
                     
                     cellData = e2b(rawVal);
                 }
- else {
-                    let rawVal = s[col.field] || s[col.field.toLowerCase()] || s[col.field.charAt(0).toUpperCase() + col.field.slice(1)] || '-';
-                    if (col.field === 'gender') rawVal = guessGender(s);
-                    cellData = e2b(rawVal);
-                }
+                
                 htmlContent += `<td style="padding: ${pd}; text-align: ${align};">${cellData}</td>`;
             });
             htmlContent += `</tr>`;
+        });
+
         });
         htmlContent += `</tbody></table>
             <div class="hp-footer-summary">
