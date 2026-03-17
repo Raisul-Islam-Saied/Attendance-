@@ -384,62 +384,51 @@
         </div>
     </div>
 </div>
-<div id="student-profile-modal" class="fixed inset-0 z-[99999] hidden flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/50 backdrop-blur-sm transition-opacity opacity-0 duration-300">
+<div id="student-profile-modal" class="fixed inset-0 z-[99999] hidden flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md transition-opacity opacity-0 duration-300">
     
-    <div class="bg-slate-50 rounded-t-[32px] sm:rounded-[24px] w-full max-w-md max-h-[92vh] flex flex-col shadow-2xl transform translate-y-full sm:translate-y-0 sm:scale-95 transition-all duration-300 ease-out relative" id="profile-card">
+    <div class="bg-[#f8fafc] rounded-[28px] w-full max-w-md max-h-[92vh] flex flex-col shadow-2xl transform scale-95 transition-all duration-300 ease-out relative overflow-hidden" id="profile-card">
         
-        <div class="h-32 bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-800 relative shrink-0 rounded-t-[32px] sm:rounded-t-[24px] overflow-hidden">
-            <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 16px 16px;"></div>
-            
-            <button onclick="closeStudentProfile()" class="absolute top-5 right-5 bg-black/20 hover:bg-black/30 text-white rounded-full w-8 h-8 flex items-center justify-center backdrop-blur-md transition-colors z-20">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
+        <div class="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-slate-200 rounded-full z-30"></div>
+
+        <button onclick="closeStudentProfile()" class="absolute top-4 right-4 z-20 w-8 h-8 bg-slate-200/60 hover:bg-slate-200 text-slate-600 rounded-full flex items-center justify-center backdrop-blur transition-colors">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="bg-white pt-8 pb-5 px-6 flex flex-col items-center border-b border-slate-100 shrink-0">
+            <img id="modal-img" src="" class="w-24 h-24 rounded-full object-cover shadow-md border-2 border-slate-50 mb-3 bg-slate-100">
+            <h2 id="modal-name-en" class="text-xl font-bold text-slate-800 leading-tight"></h2>
+            <p id="modal-name-bn" class="text-sm font-medium text-slate-500 mt-0.5"></p>
+            <div class="mt-2.5 bg-slate-100 px-3 py-1 rounded-lg text-slate-600 text-xs font-bold tracking-wide">
+                ID: <span id="modal-id"></span>
+            </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto custom-scrollbar relative px-6 pb-8 pt-0">
-            
-            <div class="flex justify-between items-end -mt-12 mb-4 relative z-10">
-                <div class="relative">
-                    <img id="modal-img" src="" class="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-slate-50 object-cover shadow-xl bg-white">
-                    <div class="absolute bottom-1 right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full shadow-sm" title="Active"></div>
+        <div class="bg-white px-6 py-3 flex justify-between items-center border-b border-slate-100 shrink-0 shadow-sm z-10">
+            <div class="flex gap-4 text-left">
+                <div>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wide mb-0.5">Class</p>
+                    <p id="modal-class" class="font-bold text-slate-700 text-sm"></p>
                 </div>
-                <a id="modal-whatsapp-btn" href="#" target="_blank" class="hidden mb-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full text-[11px] font-bold shadow-md shadow-green-200 transition-transform active:scale-95 flex items-center gap-1.5">
-                    <i class="fa-brands fa-whatsapp text-sm"></i> মেসেজ
+                <div class="w-px bg-slate-200 my-1"></div>
+                <div>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wide mb-0.5">Roll</p>
+                    <p id="modal-roll" class="font-bold text-slate-700 text-sm"></p>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <a id="modal-call-btn" href="#" class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-lg hover:bg-blue-100 transition-colors" title="Call">
+                    <i class="fa-solid fa-phone"></i>
+                </a>
+                <a id="modal-wa-btn" href="#" target="_blank" class="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center text-xl hover:bg-green-100 transition-colors" title="WhatsApp">
+                    <i class="fa-brands fa-whatsapp"></i>
                 </a>
             </div>
-
-            <div class="mb-6 text-left">
-                <h2 id="modal-name-bn" class="text-2xl font-black text-slate-800 leading-tight"></h2>
-                <p id="modal-name-en" class="text-sm text-slate-500 font-medium tracking-wide mt-0.5"></p>
-            </div>
-
-            <div class="grid grid-cols-3 gap-3 mb-6">
-                <div class="bg-white py-3 px-2 rounded-[18px] shadow-sm border border-indigo-50 flex flex-col items-center justify-center text-center">
-                    <div class="w-8 h-8 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center mb-1.5"><i class="fa-regular fa-id-card"></i></div>
-                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">আইডি</span>
-                    <p id="modal-id" class="font-bold text-slate-700 text-sm leading-none mt-1"></p>
-                </div>
-                <div class="bg-white py-3 px-2 rounded-[18px] shadow-sm border border-emerald-50 flex flex-col items-center justify-center text-center">
-                    <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mb-1.5"><i class="fa-solid fa-hashtag"></i></div>
-                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">রোল</span>
-                    <p id="modal-roll" class="font-bold text-slate-700 text-sm leading-none mt-1"></p>
-                </div>
-                <div class="bg-white py-3 px-2 rounded-[18px] shadow-sm border border-amber-50 flex flex-col items-center justify-center text-center">
-                    <div class="w-8 h-8 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mb-1.5"><i class="fa-solid fa-graduation-cap"></i></div>
-                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">শ্রেণী</span>
-                    <p id="modal-class" class="font-bold text-slate-700 text-sm leading-none mt-1"></p>
-                </div>
-            </div>
-
-            <div id="modal-dynamic-data" class="space-y-2.5">
-                </div>
         </div>
+
+        <div class="flex-1 overflow-y-auto p-4 sm:p-5 custom-scrollbar space-y-4" id="modal-structured-data">
+            </div>
     </div>
 </div>
-</div> 
-    
-    
-    
     <div id="pdf-export-modal" class="fixed inset-0 z-[99999] hidden items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md transition-opacity opacity-0 duration-300">
     <div class="bg-slate-50 rounded-[24px] w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl transform scale-95 transition-transform duration-300 relative" id="pdf-modal-card">
         
@@ -658,119 +647,218 @@
      * STUDENT PROFILE MODAL (ALL DATA INCLUDED)
      * ==========================================  
      */ 
-     function openStudentProfile(studentId) {
-        const student = state.students[studentId];
-        if(!student) return;
+        // ==========================================
+    // 1. OPEN STUDENT PROFILE (Premium Data Layout)
+    // ==========================================
+    function openStudentProfile(studentId) {
+        const st = state.students[studentId];
+        if(!st) return;
 
-        // Base Info & Image
-        const defaultImg = `https://ui-avatars.com/api/?name=${encodeURIComponent(student.nameEn || 'S')}&background=4F46E5&color=fff&bold=true&size=200`;
-        document.getElementById('modal-img').src = student.image || defaultImg;
+        // --- Basic Info Extract ---
+        const nameEn = st.StudentNameEn || st.nameEn || st['Name (En)'] || '';
+        const nameBn = st.StudentNameBn || st.nameBn || st.Name || '-';
+        const classEn = st.ClassEn || '';
+        const classBn = st.ClassBn || st.classBn || '';
+        const className = classEn || classBn;
+        
+        // Image setup
+        const defaultImg = `https://ui-avatars.com/api/?name=${encodeURIComponent(nameEn || nameBn || 'S')}&background=4F46E5&color=fff&bold=true&size=200`;
+        document.getElementById('modal-img').src = st.image || defaultImg;
         document.getElementById('modal-img').onerror = function() { this.src = defaultImg; };
 
-        // Name & Main Data
-        document.getElementById('modal-name-bn').innerText = student.nameBn || student.StudentNameBn || '-';
-        document.getElementById('modal-name-en').innerText = student.nameEn || student.StudentNameEn || '';
-        document.getElementById('modal-id').innerText = student.id || '-';
-        document.getElementById('modal-roll').innerText = e2b(student.roll || student.Roll || '-');
-        document.getElementById('modal-class').innerText = student.classBn || student.ClassBn || '-';
+        // Header Update
+        document.getElementById('modal-name-en').innerText = nameEn || nameBn;
+        document.getElementById('modal-name-bn').innerText = nameEn ? nameBn : ''; 
+        document.getElementById('modal-id').innerText = st.id || st.ID || '-';
+        document.getElementById('modal-class').innerText = className || '-';
+        document.getElementById('modal-roll').innerText = st.roll || st.Roll || '-';
 
-        // === Smart WhatsApp Action Button Logic ===
-        const waBtn = document.getElementById('modal-whatsapp-btn');
-        const waNum = student.WhatsApp || student.whatsapp || student.Mobile || student.mobile || student.EmergencyNo;
-        if (waNum) {
-            let cleanNum = String(waNum).replace(/[^0-9]/g, '');
-            if(cleanNum.startsWith('0')) cleanNum = '88' + cleanNum; // Auto-add BD country code
+        // --- Call & WhatsApp Buttons ---
+        const callBtn = document.getElementById('modal-call-btn');
+        const waBtn = document.getElementById('modal-wa-btn');
+        const phoneNo = st.WhatsApp || st.whatsapp || st.Mobile || st.mobile || st.EmergencyNo || '';
+        
+        if (phoneNo) {
+            let cleanNum = String(phoneNo).replace(/[^0-9+]/g, '');
+            callBtn.href = `tel:${cleanNum}`;
+            callBtn.style.display = 'flex';
+            
+            if(!cleanNum.startsWith('+88') && cleanNum.length === 11) cleanNum = '88' + cleanNum;
             waBtn.href = `https://wa.me/${cleanNum}`;
-            waBtn.classList.remove('hidden');
+            waBtn.style.display = 'flex';
         } else {
-            waBtn.classList.add('hidden');
+            callBtn.style.display = 'none';
+            waBtn.style.display = 'none';
         }
 
-        // === Render Premium Dynamic Data Cards ===
-        const dynamicContainer = document.getElementById('modal-dynamic-data');
-        dynamicContainer.innerHTML = '';
+        // --- Complex Data Formatting ---
+        const buildAddressLine = (en, bn) => {
+            if(en && bn) return `${en} (${bn})`;
+            if(en) return en;
+            if(bn) return bn;
+            return '';
+        };
 
-        const excludeKeys = ['id', 'ID', 'nameBn', 'StudentNameBn', 'Name (Bn)', 'Name', 'nameEn', 'StudentNameEn', 'Name (En)', 'classBn', 'ClassBn', 'Class (Bn)', 'roll', 'Roll', 'image', 'ImageURL', 'Image URL', 'imageUrl', 'timestamp'];
+        const houseLine = buildAddressLine(st.HouseNameEn, st.HouseNameBn);
+        const villageLine = buildAddressLine(st.VillageEn, st.VillageBn);
+        const unionLine = buildAddressLine(st.UnionEn, st.UnionBn);
+        const wardLine = st.WardNo ? `Ward ${st.WardNo}` : '';
+        const unionWardLine = [unionLine, wardLine].filter(Boolean).join(' / ');
+        const areaLine = [st.UpazilaEn || st.UpazilaBn, st.DistrictEn || st.DistrictBn].filter(Boolean).join(', ');
 
-        let html = '';
-        for (const [key, value] of Object.entries(student)) {
-            if (!excludeKeys.includes(key) && value !== null && value !== undefined && String(value).trim() !== '') {
-                
-                // Key Formatting (Translating English Keys to Bengali for better UI)
-                let formattedKey = key.replace(/([A-Z])/g, ' $1').trim();
-                if(key === 'BloodGroup') formattedKey = 'রক্তের গ্রুপ';
-                if(key === 'FatherNameBn') formattedKey = 'পিতার নাম';
-                if(key === 'MotherNameBn') formattedKey = 'মাতার নাম';
-                if(key === 'DOB' || key === 'dob') formattedKey = 'জন্ম তারিখ';
-                if(key === 'WhatsApp' || key === 'EmergencyNo') formattedKey = 'যোগাযোগ (মোবাইল)';
-                if(key === 'BRN') formattedKey = 'জন্ম নিবন্ধন নং';
-                if(key === 'Gender' || key === 'gender') formattedKey = 'লিঙ্গ';
-
-                // Display Value Formatting
-                let displayValue = value;
-                if((key === 'DOB' || key === 'dob') && String(value).includes('-')) {
-                     try { displayValue = e2b(new Date(value).toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' })); } catch(e){}
+        let dobFormatted = st.DOB || st.dob || '';
+        if(dobFormatted && dobFormatted.includes('-')) {
+            try {
+                const d = new Date(dobFormatted);
+                if(!isNaN(d.getTime())) {
+                    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                    dobFormatted = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
                 }
+            } catch(e){}
+        }
 
-                html += `
-                    <div class="bg-white p-3.5 rounded-xl border border-slate-100 shadow-sm flex items-start gap-3 hover:border-indigo-200 transition-colors">
-                        <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center shrink-0 text-indigo-400 mt-0.5 border border-slate-100">
-                            <i class="fa-solid fa-list-ul text-[11px]"></i>
-                        </div>
-                        <div class="flex-1 min-w-0 pt-0.5">
-                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-0.5">${formattedKey}</span>
-                            <span class="block text-sm font-semibold text-slate-700 leading-snug break-words">${displayValue}</span>
-                        </div>
+        // Helper for rows
+        const makeItem = (label, val) => val ? `
+            <div class="flex justify-between items-center py-2.5 border-b border-slate-50 last:border-0 last:pb-0">
+                <span class="text-[11px] text-slate-500 font-bold">${label}</span>
+                <span class="text-sm font-bold text-slate-700 text-right max-w-[60%] leading-tight">${val}</span>
+            </div>
+        ` : '';
+
+        // --- Inject Structured HTML ---
+        document.getElementById('modal-structured-data').innerHTML = `
+            <div class="bg-white rounded-2xl p-4 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-slate-100">
+                <h3 class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="fa-solid fa-users"></i> Parents Info</h3>
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold mb-0.5">পিতার নাম / Father Name</p>
+                        <p class="font-bold text-slate-700 text-[15px]">${st.FatherNameBn || '-'}</p>
+                        ${st.FatherNameEn ? `<p class="font-medium text-slate-500 text-xs">${st.FatherNameEn}</p>` : ''}
                     </div>
-                `;
-            }
-        }
+                    <div class="w-full h-px bg-slate-50"></div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold mb-0.5">মাতার নাম / Mother Name</p>
+                        <p class="font-bold text-slate-700 text-[15px]">${st.MotherNameBn || '-'}</p>
+                        ${st.MotherNameEn ? `<p class="font-medium text-slate-500 text-xs">${st.MotherNameEn}</p>` : ''}
+                    </div>
+                </div>
+            </div>
 
-        if (html !== '') {
-            dynamicContainer.innerHTML = `
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 mt-4 pl-1 flex items-center gap-2">
-                    <i class="fa-solid fa-folder-open"></i> অন্যান্য তথ্য
-                </h3>
-                ${html}
-            `;
-        }
+            <div class="bg-white rounded-2xl p-4 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-slate-100">
+                <h3 class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-2 flex items-center gap-1.5"><i class="fa-solid fa-address-card"></i> Contact & Personal</h3>
+                ${makeItem('Mobile', st.WhatsApp || st.Mobile || st.whatsapp || st.mobile)}
+                ${makeItem('Emergency', st.EmergencyNo)}
+                ${makeItem('Date of Birth', dobFormatted)}
+                ${makeItem('BRN', st.BRN)}
+                ${makeItem('Gender', st.Gender || st.gender || guessGender(st))}
+            </div>
 
-        // === Open Modal with Bottom-Sheet Animation ===
+            ${(houseLine || villageLine || unionWardLine || areaLine) ? `
+            <div class="bg-white rounded-2xl p-4 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-slate-100">
+                <h3 class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-2 flex items-center gap-1.5"><i class="fa-solid fa-location-dot"></i> Address Details</h3>
+                ${makeItem('House', houseLine)}
+                ${makeItem('Village', villageLine)}
+                ${makeItem('Union/Ward', unionWardLine)}
+                ${makeItem('Area', areaLine)}
+            </div>` : ''}
+        `;
+
+        // === Open Modal Animation (Slide Up) ===
         const modal = document.getElementById('student-profile-modal');
         const card = document.getElementById('profile-card');
         
         modal.classList.remove('hidden');
+        
+        // প্রথমে কার্ডটিকে স্ক্রিনের নিচে লুকিয়ে রাখা হচ্ছে
+        card.style.transition = 'none';
+        card.style.transform = 'translateY(100vh)'; 
+        
+        // এরপর স্লাইড করে উপরে তোলা হচ্ছে
         setTimeout(() => {
             modal.classList.remove('opacity-0');
-            if (window.innerWidth < 640) {
-                card.classList.remove('translate-y-full'); // Mobile Slide-up
-            } else {
-                card.classList.remove('scale-95'); // Desktop Fade-in
-            }
+            card.style.transition = 'transform 0.4s cubic-bezier(0.32, 0.72, 0, 1)';
+            card.style.transform = 'translateY(0)';
+            card.classList.remove('scale-95'); 
         }, 10);
         
         history.pushState({ modal: true }, "");
     }
 
+    // ==========================================
+    // 2. CLOSE STUDENT PROFILE (Slide Down)
+    // ==========================================
     function closeStudentProfile() {
         const modal = document.getElementById('student-profile-modal');
         const card = document.getElementById('profile-card');
 
         modal.classList.add('opacity-0');
-        if (window.innerWidth < 640) {
-            card.classList.add('translate-y-full');
-        } else {
-            card.classList.add('scale-95');
-        }
+        
+        // স্লাইড করে নিচে নামার অ্যানিমেশন
+        card.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
+        card.style.transform = 'translateY(100vh)'; 
 
         setTimeout(() => {
             modal.classList.add('hidden');
+            card.style.transform = ''; // স্টাইল রিসেট
+            card.classList.add('scale-95'); 
         }, 300);
 
         if (history.state && history.state.modal) {
             history.back();
         }
     }
+
+    // ==========================================
+    // 3. SWIPE DOWN TO CLOSE LOGIC (Drag down)
+    // ==========================================
+    function initModalSwipeToClose() {
+        const card = document.getElementById('profile-card');
+        const scrollArea = document.getElementById('modal-structured-data');
+        if (!card || !scrollArea) return;
+
+        let startY = 0;
+        let currentY = 0;
+        let isDragging = false;
+
+        card.addEventListener('touchstart', (e) => {
+            // যদি ইউজার স্ক্রল এরিয়ার ভেতরে থাকে এবং স্ক্রল একেবারে উপরে (0) না থাকে, তবে সোয়াইপ কাজ করবে না।
+            if (scrollArea.contains(e.target) && scrollArea.scrollTop > 0) {
+                return;
+            }
+            startY = e.touches[0].clientY;
+            isDragging = true;
+            card.style.transition = 'none'; 
+        }, {passive: true});
+
+        card.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            const deltaY = e.touches[0].clientY - startY;
+
+            // শুধুমাত্র নিচের দিকে (Downwards) টানলে মডাল নিচে নামবে
+            if (deltaY > 0) {
+                currentY = deltaY;
+                card.style.transform = `translateY(${currentY}px)`;
+            }
+        }, {passive: true});
+
+        card.addEventListener('touchend', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            // যদি ১০০ পিক্সেলের বেশি টানা হয়, তবে মডালটি পুরো বন্ধ হয়ে যাবে
+            if (currentY > 100) {
+                closeStudentProfile();
+            } else {
+                // নতুবা বাউন্স করে আগের জায়গায় ফিরে যাবে
+                card.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
+                card.style.transform = 'translateY(0)';
+            }
+            currentY = 0;
+        });
+    }
+
+    // অ্যাপ লোড হওয়ার পর সোয়াইপ ডাউন ফিচারটি অ্যাক্টিভ করা হলো
+    setTimeout(initModalSwipeToClose, 1000);
 
     /** * ==========================================  
      * DATA FETCHING MODULE (API)  
