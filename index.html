@@ -51,10 +51,20 @@
     body { font-family: 'Hind Siliguri', sans-serif; background-color: #f8fafc; overflow: hidden; overscroll-behavior-y: none; }  
       
     /* Custom Scrollbar for sleek UI */  
-    ::-webkit-scrollbar { width: 4px; height: 4px; }  
+   /* ::-webkit-scrollbar { width: 4px; height: 4px; }  
     ::-webkit-scrollbar-track { background: transparent; }  
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }  
-      
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }  */
+    /* Hide scrollbar globally for a seamless native app look */
+* {
+    scrollbar-width: none !important; /* Firefox */
+    -ms-overflow-style: none !important; /* IE and Edge */
+}
+*::-webkit-scrollbar {
+    display: none !important; /* Chrome, Safari, Opera */
+    width: 0 !important;
+    height: 0 !important;
+}
+
     /* Glassmorphism */  
     .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }  
     .glass-dark { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }  
