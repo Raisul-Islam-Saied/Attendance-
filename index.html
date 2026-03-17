@@ -1323,7 +1323,7 @@ function toggleDashboardView() {
     const modeName = state.dashboardViewMode === 'recent' ? 'রিসেন্ট লিস্ট' : 'সম্পূর্ণ ডাটাবেস';
   //  Toast.fire({ icon: 'info', title: `ভিউ পরিবর্তন: ${modeName}` });
 }
-              // --- গ্লোবাল ভ্যারিয়েবল ও ফাংশন (ডাটাবেস এক্সপ্যান্ড এবং সার্চ করার জন্য) ---
+        // --- গ্লোবাল ভ্যারিয়েবল ও ফাংশন (ডাটাবেস এক্সপ্যান্ড এবং সার্চ করার জন্য) ---
     window.dbViewExpanded = window.dbViewExpanded || false;
     window.dbSearchTerm = window.dbSearchTerm || '';
     window.isDbSearchOpen = window.isDbSearchOpen || false;
@@ -1415,7 +1415,16 @@ function toggleDashboardView() {
         const listTitle = document.getElementById('dash-list-title');
         const toggleBtnIcon = document.getElementById('btn-dash-toggle');
         
-        const viewAllBtn = document.querySelector("button[onclick=\"switchTab('history')\"]") || document.querySelector("button[onclick=\"expandDatabaseList()\"]") || document.querySelector("button[onclick=\"collapseDatabaseList()\"]") || (listTitle ? listTitle.nextElementSibling : null);
+        // ফিক্স: শুধুমাত্র হেডার অংশের বাটনটিকেই ধরা হচ্ছে, যেন নিচের নেভিগেশন বার সুরক্ষিত থাকে
+        let viewAllBtn = null;
+        if (listTitle && listTitle.parentElement) {
+            const headerBtns = listTitle.parentElement.querySelectorAll('button');
+            headerBtns.forEach(btn => {
+                if (btn.id !== 'db-search-toggle-btn') {
+                    viewAllBtn = btn;
+                }
+            });
+        }
 
         if (!listContainer) return;
 
@@ -1435,10 +1444,12 @@ function toggleDashboardView() {
                 listTitle.innerText = 'সর্বশেষ অনুসন্ধানকৃত';
                 listTitle.style.opacity = '1';
                 listTitle.style.display = 'block';
+                listTitle.style.pointerEvents = 'auto';
             }
             if(toggleBtnIcon) toggleBtnIcon.innerHTML = '<i class="fa-solid fa-users"></i>';
             
-            if(viewAllBtn && viewAllBtn.tagName === 'BUTTON') {
+            // অরিজিনাল অবস্থায় ফিরিয়ে আনা
+            if(viewAllBtn) {
                 viewAllBtn.classList.remove('hidden');
                 viewAllBtn.innerText = 'সব দেখুন';
                 viewAllBtn.setAttribute('onclick', "switchTab('history')");
@@ -1500,11 +1511,19 @@ function toggleDashboardView() {
     // আলাদা হেডার রেন্ডার ফাংশন (যেন টাইপ করার সময় সার্চ ইনপুট ফোকাস না হারায়)
     window.renderDbHeader = function() {
         const listTitle = document.getElementById('dash-list-title');
-        const viewAllBtn = document.querySelector("button[onclick=\"switchTab('history')\"]") || document.querySelector("button[onclick=\"expandDatabaseList()\"]") || document.querySelector("button[onclick=\"collapseDatabaseList()\"]") || (listTitle ? listTitle.nextElementSibling : null);
         const headerParent = listTitle ? listTitle.parentElement : null;
 
         if (!headerParent) return;
         headerParent.classList.add('relative', 'w-full');
+
+        // ফিক্স: শুধুমাত্র হেডার অংশের বাটনটিকেই ধরা হচ্ছে
+        let viewAllBtn = null;
+        const headerBtns = headerParent.querySelectorAll('button');
+        headerBtns.forEach(btn => {
+            if (btn.id !== 'db-search-toggle-btn' && btn.id !== 'db-clear-btn') {
+                viewAllBtn = btn;
+            }
+        });
 
         // Search Toggle Button
         let searchToggleBtn = document.getElementById('db-search-toggle-btn');
@@ -1569,8 +1588,8 @@ function toggleDashboardView() {
             }
         }
 
-        // Expand/Collapse Button
-        if(viewAllBtn && viewAllBtn.tagName === 'BUTTON') {
+        // Expand/Collapse Button (protected from breaking bottom nav)
+        if(viewAllBtn) {
             viewAllBtn.classList.remove('hidden');
             if (!window.dbViewExpanded && !window.dbSearchTerm) {
                 viewAllBtn.innerText = 'সব দেখুন';
@@ -1662,7 +1681,7 @@ function toggleDashboardView() {
         allStudents.sort((a, b) => a.daysToBday - b.daysToBday);
 
         // এক্সপ্যান্ড স্টেট বা সার্চ থাকলে সব ডাটা দেখাবে, না হলে ২০ টি
-        const displayLimit = (window.dbViewExpanded || term) ? allStudents.length : 10;
+        const displayLimit = (window.dbViewExpanded || term) ? allStudents.length : 20;
         let allStudentsHtml = ''; 
 
         allStudents.slice(0, displayLimit).forEach(s => {
@@ -1688,6 +1707,7 @@ function toggleDashboardView() {
         listContainer.innerHTML = allStudentsHtml;
     };
 
+     
       function renderHistoryUI(searchTerm = '') {  
         const listContainer = document.getElementById('full-history-list');  
         let filteredData = [...state.historyData];  
