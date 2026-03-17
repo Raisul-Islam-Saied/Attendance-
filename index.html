@@ -1369,7 +1369,7 @@ function toggleDashboardView() {
                         <i class="fa-solid fa-hashtag text-[8px]"></i> ${s.roll || '-'}
                     </span>  
                     <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-600 px-2 py-0.5 rounded-md text-[10px] font-bold border border-amber-100/50 truncate">
-                        ${s.classBn || '-'}
+                        ${(s.classBn === 'নার্সারি' ? 'নার্সা' : s.classBn) || '-'}
                     </span>
                 </div>   
             </div>
