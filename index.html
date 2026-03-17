@@ -2264,9 +2264,24 @@ function removePlainField(index) {
     plainFieldsOrder.splice(index, 1);
     renderPlainFields();
 }
+function updateCol(index, key, value) { 
+    pdfConfig.tableColumns[index][key] = value; 
+    if (key === 'width') updatePdfColTotal(); // সাইজ পরিবর্তন হলে সাথে সাথে টাইটেল আপডেট হবে
+}
 
-    
-function updateCol(index, key, value) { pdfConfig.tableColumns[index][key] = value; }
+// নতুন ফাংশন: লাইভ পারসেন্টেজ হিসাব করে টাইটেলে দেখানোর জন্য
+function updatePdfColTotal() {
+    let totalWidth = 0;
+    pdfConfig.tableColumns.forEach(col => {
+        totalWidth += parseInt(col.width) || 0;
+    });
+    const titleEl = document.querySelector('#settings-table h3');
+    if (titleEl) {
+        let colorClass = totalWidth === 100 ? 'text-emerald-600' : (totalWidth > 100 ? 'text-red-500' : 'text-orange-500');
+        titleEl.innerHTML = `<i class="fa-solid fa-table-columns mr-1"></i> কলাম সেটিং (<span class="${colorClass} font-extrabold">${e2b(totalWidth)}%</span> - ১০০%)`;
+    }
+}
+
 function removePdfColumn(index) { pdfConfig.tableColumns.splice(index, 1); renderTableColumns(); }
 // Helper to determine gender from varying database keys intelligently
 // Helper to determine gender as Chhatro/Chhatri
@@ -2292,6 +2307,8 @@ function calculateAge(dobStr) {
 function renderTableColumns() {
     const container = document.getElementById('pdf-columns-container');
     container.innerHTML = '';
+    
+    updatePdfColTotal(); // মডাল ওপেন বা কলাম অ্যাড/রিমুভ হওয়ার সাথে সাথে পারসেন্টেজ আপডেট হবে
     
     // ডাটাবেসের সাধারণ ফিল্ডগুলোর লিস্ট (ড্রপডাউনের জন্য)
             const fieldOptions = [
@@ -2338,7 +2355,7 @@ function renderTableColumns() {
                 </div>
                 <div class="w-16">
                     <div class="relative">
-                        <input type="number" value="${col.width}" onchange="updateCol(${index}, 'width', this.value)" class="w-full bg-white border border-slate-300 rounded text-xs px-2 py-1.5 outline-none pr-5 text-center font-bold focus:border-indigo-500">
+                        <input type="number" value="${col.width}" oninput="updateCol(${index}, 'width', this.value)" class="w-full bg-white border border-slate-300 rounded text-xs px-2 py-1.5 outline-none pr-5 text-center font-bold focus:border-indigo-500">
                         <span class="absolute right-1.5 top-1.5 text-xs text-slate-400">%</span>
                     </div>
                 </div>
@@ -2348,6 +2365,7 @@ function renderTableColumns() {
     });
 }
 
+    
 function addPdfColumn(type) {
     pdfConfig.tableColumns.push({
         id: 'col' + Date.now(),
