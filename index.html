@@ -531,7 +531,7 @@
     <option value="FatherNameBn">পিতার নাম (বাংলা)</option>
     <option value="MotherNameBn">মাতার নাম (বাংলা)</option>
     <option value="WhatsApp">মোবাইল নম্বর</option>
-        option value="Age">বয়স (Age)</option> </select>
+        <option value="Age">বয়স (Age)</option> </select>
 </select>
                         </div>
 
@@ -1670,15 +1670,28 @@ function guessGender(student) {
     return 'অজানা';
 }
 
-// Helper to calculate age from DOB
+// Helper to calculate age from ISO Date (e.g., "2011-11-10T18:00:00.000Z")
 function calculateAge(dobStr) {
-    if(!dobStr) return null;
+    if (!dobStr) return null;
+    
+    // আপনার ডাটাবেসের ফরম্যাটটিকে সরাসরি Date অবজেক্টে রূপান্তর করবে
     const dob = new Date(dobStr);
-    if(isNaN(dob.getTime())) return null;
-    const ageDifMs = Date.now() - dob.getTime();
-    const ageDate = new Date(ageDifMs);
-    return Math.abs(ageDate.getUTCFullYear() - 1970);
+    
+    // যদি কোনো কারণে ডেটা ভুল থাকে (Invalid Date), তবে তা স্কিপ করবে
+    if (isNaN(dob.getTime())) return null; 
+
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+    
+    // যদি এই বছর এখনও জন্মদিন না এসে থাকে, তাহলে বয়স ১ বছর কম হিসাব করবে
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+        age--;
+    }
+    
+    return age;
 }
+
 
 
 
