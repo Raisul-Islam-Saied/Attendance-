@@ -1335,6 +1335,18 @@ function toggleDashboardView() {
         window.dbViewExpanded = false;
         updateDashboardUI();
     };
+    // --- গ্লোবাল ভ্যারিয়েবল ও ফাংশন (ডাটাবেস এক্সপ্যান্ড করার জন্য) ---
+    window.dbViewExpanded = window.dbViewExpanded || false;
+
+    window.expandDatabaseList = function() {
+        window.dbViewExpanded = true;
+        updateDashboardUI();
+    };
+
+    window.collapseDatabaseList = function() {
+        window.dbViewExpanded = false;
+        updateDashboardUI();
+    };
 
     function updateDashboardUI() {  
         const totalHistoryData = state.historyData || [];  
@@ -1350,8 +1362,9 @@ function toggleDashboardView() {
         const listContainer = document.getElementById('dash-recent-list');  
         const listTitle = document.getElementById('dash-list-title');
         const toggleBtnIcon = document.getElementById('btn-dash-toggle');
-        // 'সব দেখুন' বাটনটিকে ধরার জন্য
-        const viewAllBtn = document.querySelector("button[onclick=\"switchTab('history')\"]");
+        
+        // HTML এর অরিজিনাল 'সব দেখুন' বাটনটিকে ধরা হচ্ছে
+        const viewAllBtn = document.querySelector("button[onclick=\"switchTab('history')\"]") || (listTitle ? listTitle.nextElementSibling : null);
 
         if (!listContainer) return;
         listContainer.innerHTML = '';  
@@ -1361,7 +1374,14 @@ function toggleDashboardView() {
             window.dbViewExpanded = false; // রিসেন্ট ভিউতে গেলে এক্সপ্যান্ড মুড রিসেট হবে
             if(listTitle) listTitle.innerText = 'সর্বশেষ অনুসন্ধানকৃত';
             if(toggleBtnIcon) toggleBtnIcon.innerHTML = '<i class="fa-solid fa-users"></i>';
-            if(viewAllBtn) viewAllBtn.classList.remove('hidden'); // রিসেন্ট মোডে বাটন দেখাবে
+            
+            // বাটনটিকে তার অরিজিনাল অবস্থায় ফিরিয়ে আনা হচ্ছে
+            if(viewAllBtn) {
+                viewAllBtn.classList.remove('hidden');
+                viewAllBtn.innerText = 'সব দেখুন';
+                viewAllBtn.setAttribute('onclick', "switchTab('history')");
+                viewAllBtn.className = "text-xs text-indigo-600 font-semibold bg-indigo-50 px-3 py-1.5 rounded-full transition-all active:scale-95";
+            }
 
             if (totalHistoryData.length === 0) {  
                 listContainer.innerHTML = `  
@@ -1418,14 +1438,19 @@ function toggleDashboardView() {
         // ২. সকল শিক্ষার্থী ভিউ (All Students View)
         else {
             if(toggleBtnIcon) toggleBtnIcon.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i>';
-            if(viewAllBtn) viewAllBtn.classList.add('hidden'); // ডিফল্ট হিস্ট্রি বাটন হাইড হবে
+            if(listTitle) listTitle.innerText = 'সকল শিক্ষার্থী (ডাটাবেস)';
 
-            // ডাইনামিক বাটন ইনজেক্ট করা হচ্ছে
-            if(listTitle) {
+            // বাটনটির ফাংশনালিটি ডাইনামিক করা হচ্ছে ডাটাবেস ভিউ এর জন্য
+            if(viewAllBtn) {
+                viewAllBtn.classList.remove('hidden');
                 if (!window.dbViewExpanded) {
-                    listTitle.innerHTML = 'সকল শিক্ষার্থী <button onclick="expandDatabaseList()" class="ml-2 text-[11px] bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full font-bold active:scale-95 transition-transform border border-indigo-100 shadow-sm"><i class="fa-solid fa-angle-down mr-1"></i>সব দেখুন</button>';
+                    viewAllBtn.innerText = 'সব দেখুন';
+                    viewAllBtn.setAttribute('onclick', "expandDatabaseList()");
+                    viewAllBtn.className = "text-xs text-indigo-600 font-semibold bg-indigo-50 px-3 py-1.5 rounded-full transition-all active:scale-95";
                 } else {
-                    listTitle.innerHTML = 'সকল শিক্ষার্থী <button onclick="collapseDatabaseList()" class="ml-2 text-[11px] bg-slate-50 text-slate-600 px-3 py-1 rounded-full font-bold active:scale-95 transition-transform border border-slate-200 shadow-sm"><i class="fa-solid fa-angle-up mr-1"></i>কম দেখুন</button>';
+                    viewAllBtn.innerText = 'কম দেখুন';
+                    viewAllBtn.setAttribute('onclick', "collapseDatabaseList()");
+                    viewAllBtn.className = "text-xs text-slate-600 font-semibold bg-slate-100 px-3 py-1.5 rounded-full transition-all active:scale-95";
                 }
             }
 
