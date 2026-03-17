@@ -1100,7 +1100,7 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
             state.scanner = new Html5Qrcode("reader");  
         }  
           
-        const config = { fps: 20, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0, disableFlip: false };  
+        const config = { fps: 40, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0, disableFlip: false };  
 
         state.scanner.start(  
             { facingMode: "environment" }, config, onScanSuccess, (err) => {}  
@@ -1118,7 +1118,7 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
         }  
     }  
 
-    function onScanSuccess(decodedText) {  
+       function onScanSuccess(decodedText) {  
         if (state.scanCooldown) return;  
           
         let studentId = "";  
@@ -1137,13 +1137,12 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
 
         const student = state.students[studentId];  
 
-                const existingIndex = state.historyData.findIndex(r => r.id === studentId);
+        const existingIndex = state.historyData.findIndex(r => r.id === studentId);
         if (existingIndex !== -1) {
-            // যদি আগে থেকেই থাকে, তবে ওয়ার্নিং দিয়ে থেমে যাবে এবং আগের ডাটা রিপ্লেস করবে না
-            handleScanResult('error', 'এই আইডিটি আগেই হিস্ট্রিতে আছে!', null);
+            // আইডি আগে থেকেই স্ক্যান করা থাকলে: বাজ সাউন্ড হবে, ক্রস দেখাবে, কিন্তু সেভ হবে না
+            handleScanResult('already_exists', 'এই আইডিটি আগেই স্ক্যান করা হয়েছে!', student);
             return; 
         }
-
 
         const now = new Date();  
         const record = {  
@@ -1162,14 +1161,17 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
     function handleScanResult(type, message, studentData) {  
         state.scanCooldown = true;  
           
-        playBeep(type);  
+        // already_exists হলে error (বাজ) সাউন্ড হবে
+        const soundType = type === 'already_exists' ? 'error' : type;
+        playBeep(soundType);  
           
         if (navigator.vibrate) {  
-            if (type === 'success') navigator.vibrate([100]);  
+            if (soundType === 'success') navigator.vibrate([100]);  
             else navigator.vibrate([200, 100, 200]);  
         }  
 
-        if (type === 'success') {  
+        // success এবং already_exists দুই ক্ষেত্রেই প্রোফাইল কার্ড পপআপ হবে
+        if (type === 'success' || type === 'already_exists') {  
             showQuickScanInfo(studentData, type);  
         } else {  
             Swal.fire({ title: 'ত্রুটি!', text: message, icon: 'error', timer: 2000, showConfirmButton: false });  
@@ -1177,6 +1179,43 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
 
         setTimeout(() => { state.scanCooldown = false; }, type === 'success' ? 1500 : 2500);  
     }  
+
+    function showQuickScanInfo(student, type) {  
+        const card = document.getElementById('quick-scan-info');  
+        card.setAttribute('onclick', `openStudentProfile('${student.id}')`);
+
+        const defaultImg = `https://ui-avatars.com/api/?name=${encodeURIComponent(student.nameEn || 'S')}&background=4F46E5&color=fff&bold=true`;  
+          
+        document.getElementById('qs-img').src = student.image || defaultImg;  
+        document.getElementById('qs-img').onerror = function() { this.src = defaultImg; };  
+          
+        document.getElementById('qs-name').innerText = student.nameBn || student.nameEn;  
+        document.getElementById('qs-id').innerText = student.id;  
+          
+        const timeText = new Date().toLocaleTimeString('bn-BD', {hour: '2-digit', minute:'2-digit'});  
+        document.getElementById('qs-time').innerText = '';  
+
+        // HTML পরিবর্তন না করেই ডাইনামিক টিক বা ক্রস চিহ্ন দেখানোর লজিক
+        const statusBadge = card.querySelector('.text-right div');
+        if (statusBadge) {
+            if (type === 'already_exists') {
+                statusBadge.className = 'bg-red-100 text-red-600 px-3 py-1 rounded-lg text-xs font-bold inline-block mb-1';
+                statusBadge.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+            } else {
+                statusBadge.className = 'bg-green-100 text-green-600 px-3 py-1 rounded-lg text-xs font-bold inline-block mb-1';
+                statusBadge.innerHTML = '<i class="fa-solid fa-check"></i>';
+            }
+        }
+
+        card.style.transform = 'translateY(0)';  
+          
+      /* const statusBadge = card.querySelector('div.bg-green-100');  
+        statusBadge.className = 'bg-green-100 text-green-600 px-3 py-1 rounded-lg text-xs font-bold inline-block mb-1';  
+        statusBadge.innerHTML = '<i class="fa-solid fa-check"></i> তথ্য হালনাগাদ';*/ 
+
+        setTimeout(() => { card.style.transform = 'translateY(150%)'; }, 4000);  
+    }
+  
 /*
     function playBeep(type) {  
         try {  
@@ -1263,29 +1302,6 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
     }
 
 }
-    function showQuickScanInfo(student, type) {  
-        const card = document.getElementById('quick-scan-info');  
-        card.setAttribute('onclick', `openStudentProfile('${student.id}')`);
-
-        const defaultImg = `https://ui-avatars.com/api/?name=${encodeURIComponent(student.nameEn || 'S')}&background=4F46E5&color=fff&bold=true`;  
-          
-        document.getElementById('qs-img').src = student.image || defaultImg;  
-        document.getElementById('qs-img').onerror = function() { this.src = defaultImg; };  
-          
-        document.getElementById('qs-name').innerText = student.nameBn || student.nameEn;  
-        document.getElementById('qs-id').innerText = student.id;  
-          
-     const timeText = new Date().toLocaleTimeString('bn-BD', {hour: '2-digit', minute:'2-digit'});  
-        document.getElementById('qs-time').innerText = '';  
-
-        card.style.transform = 'translateY(0)';  
-          
-      /*  const statusBadge = card.querySelector('div.bg-green-100');  
-        statusBadge.className = 'bg-green-100 text-green-600 px-3 py-1 rounded-lg text-xs font-bold inline-block mb-1';  
-        statusBadge.innerHTML = '<i class="fa-solid fa-check"></i> তথ্য হালনাগাদ';*/ 
-
-        setTimeout(() => { card.style.transform = 'translateY(150%)'; }, 4000);  
-    }  
 
     /** * ==========================================  
      * UI RENDERERS (Dashboard & History)  
