@@ -582,7 +582,7 @@
     let state = {  
         students: {},          
         historyData: [], 
-        dashboardViewMode: 'recent', // নতুন টগল স্টেট (recent বা all)
+        dashboardViewMode: 'all', // নতুন টগল স্টেট (recent বা all)
         currentTab: 'dashboard',  
         scanner: null,  
         isScanning: false,  
@@ -1309,6 +1309,7 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
      */  
     // === ড্যাশবোর্ড ভিউ টগল ফাংশন ===
 function toggleDashboardView() {
+    switchTab('dashboard');
     // স্টেট পরিবর্তন (recent থেকে all, বা all থেকে recent)
     state.dashboardViewMode = state.dashboardViewMode === 'recent' ? 'all' : 'recent';
     
