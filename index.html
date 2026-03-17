@@ -1324,18 +1324,7 @@ function toggleDashboardView() {
   //  Toast.fire({ icon: 'info', title: `ভিউ পরিবর্তন: ${modeName}` });
 }
            // --- গ্লোবাল ভ্যারিয়েবল ও ফাংশন (ডাটাবেস এক্সপ্যান্ড করার জন্য) ---
-    window.dbViewExpanded = window.dbViewExpanded || false;
-
-    window.expandDatabaseList = function() {
-        window.dbViewExpanded = true;
-        updateDashboardUI();
-    };
-
-    window.collapseDatabaseList = function() {
-        window.dbViewExpanded = false;
-        updateDashboardUI();
-    };
-    // --- গ্লোবাল ভ্যারিয়েবল ও ফাংশন (ডাটাবেস এক্সপ্যান্ড করার জন্য) ---
+      // --- গ্লোবাল ভ্যারিয়েবল ও ফাংশন (ডাটাবেস এক্সপ্যান্ড করার জন্য) ---
     window.dbViewExpanded = window.dbViewExpanded || false;
 
     window.expandDatabaseList = function() {
@@ -1363,8 +1352,8 @@ function toggleDashboardView() {
         const listTitle = document.getElementById('dash-list-title');
         const toggleBtnIcon = document.getElementById('btn-dash-toggle');
         
-        // HTML এর অরিজিনাল 'সব দেখুন' বাটনটিকে ধরা হচ্ছে
-        const viewAllBtn = document.querySelector("button[onclick=\"switchTab('history')\"]") || (listTitle ? listTitle.nextElementSibling : null);
+        // ফিক্স: শুধুমাত্র টাইটেলের ঠিক পাশের বাটনটিকেই ধরা হবে, নিচের নেভবার সুরক্ষিত থাকবে
+        const viewAllBtn = listTitle ? listTitle.nextElementSibling : null;
 
         if (!listContainer) return;
         listContainer.innerHTML = '';  
@@ -1375,8 +1364,8 @@ function toggleDashboardView() {
             if(listTitle) listTitle.innerText = 'সর্বশেষ অনুসন্ধানকৃত';
             if(toggleBtnIcon) toggleBtnIcon.innerHTML = '<i class="fa-solid fa-users"></i>';
             
-            // বাটনটিকে তার অরিজিনাল অবস্থায় ফিরিয়ে আনা হচ্ছে
-            if(viewAllBtn) {
+            // বাটনটিকে তার অরিজিনাল অবস্থায় (হিস্ট্রিতে যাওয়ার জন্য) ফিরিয়ে আনা হচ্ছে
+            if(viewAllBtn && viewAllBtn.tagName === 'BUTTON') {
                 viewAllBtn.classList.remove('hidden');
                 viewAllBtn.innerText = 'সব দেখুন';
                 viewAllBtn.setAttribute('onclick', "switchTab('history')");
@@ -1440,8 +1429,8 @@ function toggleDashboardView() {
             if(toggleBtnIcon) toggleBtnIcon.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i>';
             if(listTitle) listTitle.innerText = 'সকল শিক্ষার্থী (ডাটাবেস)';
 
-            // বাটনটির ফাংশনালিটি ডাইনামিক করা হচ্ছে ডাটাবেস ভিউ এর জন্য
-            if(viewAllBtn) {
+            // বাটনটির ফাংশনালিটি ডাইনামিক করা হচ্ছে ডাটাবেস ভিউ এর জন্য (এক্সপ্যান্ড/কলাপ্স করতে)
+            if(viewAllBtn && viewAllBtn.tagName === 'BUTTON') {
                 viewAllBtn.classList.remove('hidden');
                 if (!window.dbViewExpanded) {
                     viewAllBtn.innerText = 'সব দেখুন';
@@ -1460,7 +1449,7 @@ function toggleDashboardView() {
                 return; 
             }
 
-            // === জন্মদিনের লজিক ও সর্টিং (টাইমজোন বাগ ফিক্সড) ===
+            // === জন্মদিনের লজিক ও সর্টিং ===
             const today = new Date();
             today.setHours(0, 0, 0, 0); 
 
@@ -1501,7 +1490,7 @@ function toggleDashboardView() {
 
             // এক্সপ্যান্ড স্টেট অনুযায়ী লিস্টের সাইজ নির্ধারণ
             const displayLimit = window.dbViewExpanded ? allStudents.length : 20;
-            let allStudentsHtml = ''; // 0% Performance drop নিশ্চিত করার জন্য String Builder 
+            let allStudentsHtml = ''; 
 
             allStudents.slice(0, displayLimit).forEach(s => {
                 const img = s.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.nameEn || 'S')}&background=random`;  
