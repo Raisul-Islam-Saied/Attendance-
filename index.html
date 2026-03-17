@@ -384,9 +384,9 @@
         </div>
     </div>
 </div>
-<div id="student-profile-modal" class="fixed inset-0 z-[99999] hidden flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md transition-opacity opacity-0 duration-300">
+<div id="student-profile-modal" class="fixed inset-0 z-[99999] hidden flex items-end justify-center bg-slate-900/40 backdrop-blur-md transition-opacity opacity-0 duration-300">
     
-    <div class="bg-[#f8fafc] rounded-[28px] w-full max-w-md max-h-[92vh] flex flex-col shadow-2xl transform scale-95 transition-all duration-300 ease-out relative overflow-hidden" id="profile-card">
+    <div class="bg-[#f8fafc] rounded-t-[28px] w-full max-h-[92vh] flex flex-col shadow-2xl transform translate-y-full transition-all duration-300 ease-out relative overflow-hidden" id="profile-card">
         
         <div class="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-slate-200 rounded-full z-30"></div>
 
@@ -394,38 +394,44 @@
             <i class="fa-solid fa-xmark"></i>
         </button>
 
-        <div class="bg-white pt-8 pb-5 px-6 flex flex-col items-center border-b border-slate-100 shrink-0">
-            <img id="modal-img" src="" class="w-24 h-24 rounded-full object-cover shadow-md border-2 border-slate-50 mb-3 bg-slate-100">
-            <h2 id="modal-name-en" class="text-xl font-bold text-slate-800 leading-tight"></h2>
-            <p id="modal-name-bn" class="text-sm font-medium text-slate-500 mt-0.5"></p>
-            <div class="mt-2.5 bg-slate-100 px-3 py-1 rounded-lg text-slate-600 text-xs font-bold tracking-wide">
-                ID: <span id="modal-id"></span>
+        <div class="bg-white pt-8 pb-4 px-6 flex items-center gap-4 border-b border-slate-100 shrink-0">
+            <img id="modal-img" src="" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover shadow-sm border border-slate-100 shrink-0 bg-slate-50">
+            
+            <div class="flex-1 min-w-0">
+                <h2 id="modal-name-en" class="text-xl font-bold text-slate-800 leading-tight truncate"></h2>
+                <p id="modal-name-bn" class="text-sm font-medium text-slate-500 mt-0.5 truncate"></p>
             </div>
         </div>
 
-        <div class="bg-white px-6 py-3 flex justify-between items-center border-b border-slate-100 shrink-0 shadow-sm z-10">
-            <div class="flex gap-4 text-left">
+        <div class="bg-white px-5 sm:px-6 py-3 flex justify-between items-center border-b border-slate-100 shrink-0 shadow-sm z-10">
+            <div class="flex items-center gap-3 sm:gap-4 text-left">
+                <div>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wide mb-0.5">ID</p>
+                    <p id="modal-id" class="font-bold text-indigo-600 text-sm"></p>
+                </div>
+                <div class="w-px h-6 bg-slate-200"></div>
                 <div>
                     <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wide mb-0.5">Class</p>
                     <p id="modal-class" class="font-bold text-slate-700 text-sm"></p>
                 </div>
-                <div class="w-px bg-slate-200 my-1"></div>
+                <div class="w-px h-6 bg-slate-200"></div>
                 <div>
                     <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wide mb-0.5">Roll</p>
                     <p id="modal-roll" class="font-bold text-slate-700 text-sm"></p>
                 </div>
             </div>
-            <div class="flex gap-2">
-                <a id="modal-call-btn" href="#" class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-lg hover:bg-blue-100 transition-colors" title="Call">
+            
+            <div class="flex gap-2 shrink-0 ml-2">
+                <a id="modal-call-btn" href="#" class="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-md hover:bg-blue-100 transition-colors" title="Call">
                     <i class="fa-solid fa-phone"></i>
                 </a>
-                <a id="modal-wa-btn" href="#" target="_blank" class="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center text-xl hover:bg-green-100 transition-colors" title="WhatsApp">
+                <a id="modal-wa-btn" href="#" target="_blank" class="w-9 h-9 rounded-full bg-green-50 text-green-600 flex items-center justify-center text-lg hover:bg-green-100 transition-colors" title="WhatsApp">
                     <i class="fa-brands fa-whatsapp"></i>
                 </a>
             </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-4 sm:p-5 custom-scrollbar space-y-4" id="modal-structured-data">
+        <div class="flex-1 overflow-y-auto p-4 sm:p-5 custom-scrollbar space-y-4 pb-8" id="modal-structured-data">
             </div>
     </div>
 </div>
