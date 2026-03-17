@@ -531,6 +531,7 @@
     <option value="FatherNameBn">পিতার নাম (বাংলা)</option>
     <option value="MotherNameBn">মাতার নাম (বাংলা)</option>
     <option value="WhatsApp">মোবাইল নম্বর</option>
+        option value="Age">বয়স (Age)</option> </select>
 </select>
                         </div>
 
@@ -1619,11 +1620,13 @@ function setPdfFormat(format) {
 }
 
 let plainFieldsOrder = [ 'roll', 'nameBn'];
+// ১. এখানে Age যুক্ত করা হলো
 const plainFieldLabels = {
     serial: 'সিরিয়াল', roll: 'রোল', nameBn: 'নাম (বাংলা)', nameEn: 'নাম (ইংরেজি)', 
     classBn: 'শ্রেণী', id: 'আইডি', gender: 'লিঙ্গ', BloodGroup: 'রক্তের গ্রুপ', 
-    FatherNameBn: 'পিতা', MotherNameBn: 'মাতা', WhatsApp: 'মোবাইল'
+    FatherNameBn: 'পিতা', MotherNameBn: 'মাতা', WhatsApp: 'মোবাইল', Age: 'বয়স'
 };
+
 
 
 function renderPlainFields() {
@@ -1678,12 +1681,13 @@ function calculateAge(dobStr) {
 }
 
 
+
+// ২. টেবিল ভিউয়ের ড্রপডাউনে বয়স যুক্ত করা হলো
 function renderTableColumns() {
     const container = document.getElementById('pdf-columns-container');
     container.innerHTML = '';
     
-    // ডাটাবেসের সাধারণ ফিল্ডগুলোর লিস্ট (ড্রপডাউনের জন্য)
-        const fieldOptions = [
+    const fieldOptions = [
         {val: 'serial', text: 'ক্রমিক নং (Serial)'},
         {val: 'id', text: 'আইডি (ID)'},
         {val: 'roll', text: 'রোল (Roll)'},
@@ -1691,17 +1695,15 @@ function renderTableColumns() {
         {val: 'nameEn', text: 'নাম (ইংরেজি)'},
         {val: 'classBn', text: 'শ্রেণী (Class)'},
         {val: 'gender', text: 'লিঙ্গ (Gender)'},
-        {val: 'BloodGroup', text: 'রক্তের গ্রুপ (Blood)'}, // এটি আপডেট করা হয়েছে
+        {val: 'Age', text: 'বয়স (Age)'}, // এটি নতুন যুক্ত হলো
+        {val: 'BloodGroup', text: 'রক্তের গ্রুপ (Blood)'}, 
         {val: 'FatherNameBn', text: 'পিতার নাম (Father)'},
         {val: 'MotherNameBn', text: 'মাতার নাম (Mother)'},
         {val: 'session', text: 'সেশন (Session)'},
         {val: 'address', text: 'ঠিকানা (Address)'}
     ];
 
-
     pdfConfig.tableColumns.forEach((col, index) => {
-        
-        // ডাইনামিক সিলেক্ট অপশন তৈরি
         let selectHtml = `<select onchange="updateCol(${index}, 'field', this.value)" class="w-full bg-indigo-50 border border-indigo-100 text-[11px] text-indigo-700 mt-1 px-2 py-1.5 rounded outline-none font-bold cursor-pointer">`;
         fieldOptions.forEach(opt => {
             selectHtml += `<option value="${opt.val}" ${col.field === opt.val ? 'selected' : ''}>${opt.text}</option>`;
@@ -1711,10 +1713,10 @@ function renderTableColumns() {
         container.innerHTML += `
             <div class="flex items-center gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
                 <div class="flex-1">
-                    <input type="text" value="${col.label}" onchange="updateCol(${index}, 'label', this.value)" placeholder="কলামের নাম (প্রিন্টে যা দেখাবে)" class="w-full bg-white border border-slate-300 rounded text-xs px-2 py-1.5 outline-none font-bold text-slate-800 focus:border-indigo-500">
+                    <input type="text" value="${col.label}" onchange="updateCol(${index}, 'label', this.value)" placeholder="কলামের নাম" class="w-full bg-white border border-slate-300 rounded text-xs px-2 py-1.5 outline-none font-bold text-slate-800 focus:border-indigo-500">
                     ${col.type === 'data' 
                         ? selectHtml
-                        : `<input type="text" value="${col.default}" onchange="updateCol(${index}, 'default', this.value)" placeholder="ডিফল্ট ভ্যালু (যেমন: স্বাক্ষর)" class="w-full bg-white border border-slate-200 mt-1 rounded text-[11px] px-2 py-1.5 outline-none text-slate-500">`
+                        : `<input type="text" value="${col.default}" onchange="updateCol(${index}, 'default', this.value)" placeholder="ডিফল্ট ভ্যালু" class="w-full bg-white border border-slate-200 mt-1 rounded text-[11px] px-2 py-1.5 outline-none text-slate-500">`
                     }
                 </div>
                 <div class="w-16">
@@ -1728,7 +1730,6 @@ function renderTableColumns() {
         `;
     });
 }
-
 function addPdfColumn(type) {
     pdfConfig.tableColumns.push({
         id: 'col' + Date.now(),
@@ -1771,9 +1772,12 @@ async function generateSuperPDF() {
     }
     // --- আপডেটেড লজিক শেষ ---
 
-    const title = e2b(document.getElementById('pdf-title').value);
-    const subtitle = e2b(document.getElementById('pdf-subtitle').value);
+        const title = e2b(document.getElementById('pdf-title').value);
     
+    // সাব-টাইটেলে /n বা \n থাকলে তা <br> দিয়ে লাইন ব্রেক করবে
+    let rawSubtitle = document.getElementById('pdf-subtitle').value;
+    const subtitle = e2b(rawSubtitle).replace(/\/n|\\n/g, '<br>');
+
     let htmlContent = `
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;600;700;800&family=Noto+Serif+Bengali:wght@500;600;700&display=swap');
