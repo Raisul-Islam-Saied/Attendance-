@@ -2089,13 +2089,7 @@ async function generateSuperPDF() {
         window.print();
         btn.innerHTML = '<i class="fa-solid fa-print"></i> তৈরি করুন';
         btn.disabled = false;
-           window.addEventListener('afterprint', function() {
-            document.title = originalTitle;
-        }, { once: true });
-
-        window.addEventListener('focus', function() {
-            document.title = originalTitle;
-        }, { once: true });
+           
     }, 500);
 }
 
