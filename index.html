@@ -1943,7 +1943,7 @@ function deleteHistoryItem(event, studentId, timestamp) {
     // বাটনে ক্লিক করলে যেন ভুলে প্রোফাইল ওপেন না হয়ে যায়, সেজন্য ইভেন্ট স্টপ করা
     event.stopPropagation();
     
-  /* Swal.fire({
+   Swal.fire({
         title: 'নিশ্চিত?',
         text: "এই শিক্ষার্থীর ডাটাটি হিস্ট্রি থেকে মুছে ফেলতে চান?",
         icon: 'warning',
@@ -1953,7 +1953,7 @@ function deleteHistoryItem(event, studentId, timestamp) {
         confirmButtonText: 'হ্যাঁ, মুছুন',
         cancelButtonText: 'না'
     }).then((result) => {
-        if (result.isConfirmed) {*/
+        if (result.isConfirmed) {
             // নির্দিষ্ট আইডি এবং টাইমস্ট্যাম্প ধরে ডাটা রিমুভ করা
             state.historyData = state.historyData.filter(r => !(r.id === studentId && r.timestamp === timestamp));
             
@@ -1965,7 +1965,7 @@ function deleteHistoryItem(event, studentId, timestamp) {
             
             if(typeof Toast !== 'undefined') {
                 Toast.fire({ icon: 'success', title: 'হিস্ট্রি থেকে মুছে ফেলা হয়েছে!' });
-            
+            }}
         
     });
 }
