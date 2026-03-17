@@ -1771,9 +1771,9 @@ async function generateSuperPDF() {
     }
     // --- আপডেটেড লজিক শেষ ---
 
-    // সাব-টাইটেলে /n বা \n থাকলে তা <br> দিয়ে লাইন ব্রেক করবে
-    let rawSubtitle = document.getElementById('pdf-subtitle').value;
-    const subtitle = e2b(rawSubtitle).replace(/\/n|\\n/g, '<br>');
+    const title = e2b(document.getElementById('pdf-title').value);
+    const subtitle = e2b(document.getElementById('pdf-subtitle').value);
+    
     let htmlContent = `
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;600;700;800&family=Noto+Serif+Bengali:wght@500;600;700&display=swap');
