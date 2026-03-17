@@ -1681,7 +1681,7 @@ function toggleDashboardView() {
         allStudents.sort((a, b) => a.daysToBday - b.daysToBday);
 
         // এক্সপ্যান্ড স্টেট বা সার্চ থাকলে সব ডাটা দেখাবে, না হলে ২০ টি
-        const displayLimit = (window.dbViewExpanded || term) ? allStudents.length : 20;
+        const displayLimit = (window.dbViewExpanded || term) ? allStudents.length : 10;
         let allStudentsHtml = ''; 
 
         allStudents.slice(0, displayLimit).forEach(s => {
