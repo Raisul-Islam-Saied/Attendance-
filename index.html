@@ -1323,7 +1323,7 @@ function toggleDashboardView() {
     const modeName = state.dashboardViewMode === 'recent' ? 'রিসেন্ট লিস্ট' : 'সম্পূর্ণ ডাটাবেস';
   //  Toast.fire({ icon: 'info', title: `ভিউ পরিবর্তন: ${modeName}` });
 }
-    function updateDashboardUI() {  
+function updateDashboardUI() {  
         const totalHistoryData = state.historyData || [];  
         const totalStudents = Object.keys(state.students).length || 1;   
           
@@ -1407,14 +1407,60 @@ function toggleDashboardView() {
             if(toggleBtnIcon) toggleBtnIcon.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i>';
             if(viewAllBtn) viewAllBtn.classList.add('hidden'); // ডাটাবেস মোডে বাটন হাইড হবে
 
-            const allStudents = Object.values(state.students);
+            let allStudents = Object.values(state.students);
             if (allStudents.length === 0) {
                 listContainer.innerHTML = `<div class="bg-white rounded-2xl p-8 text-center border border-slate-100"><p class="text-slate-500 font-medium">ডাটাবেসে কোনো শিক্ষার্থী নেই!</p></div>`;
                 return; 
             }
 
+            // আজ এবং কালকের তারিখ বের করা
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            // --- নতুন: যাদের জন্মদিন সামনে তারা আগে থাকবে (সর্টিং লজিক) ---
+            allStudents.sort((a, b) => {
+                const getNextBdayDiff = (st) => {
+                    const dobStr = st.DOB || st.dob;
+                    if (!dobStr) return Infinity; // জন্মদিন না থাকলে লিস্টের শেষে যাবে
+                    
+                    const dob = new Date(dobStr);
+                    if (isNaN(dob.getTime())) return Infinity;
+                    
+                    const bday = new Date(dob);
+                    bday.setFullYear(today.getFullYear());
+                    bday.setHours(0, 0, 0, 0);
+                    
+                    // এই বছরের জন্মদিন পার হয়ে গেলে আগামী বছর ধরবে
+                    if (bday < today) {
+                        bday.setFullYear(today.getFullYear() + 1);
+                    }
+                    return bday.getTime() - today.getTime();
+                };
+
+                return getNextBdayDiff(a) - getNextBdayDiff(b);
+            });
+            // --------------------------------------------------------
+
             allStudents.slice(0, 50).forEach(s => {
                 const img = s.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.nameEn || 'S')}&background=random`;  
+                
+                // জন্মদিন চেক করার লজিক (ছোট ব্যাজ)
+                let bdayBadge = '';
+                const dobStr = s.DOB || s.dob;
+                if (dobStr) {
+                    const dob = new Date(dobStr);
+                    if (!isNaN(dob.getTime())) {
+                        if (dob.getDate() === today.getDate() && dob.getMonth() === today.getMonth()) {
+                            bdayBadge = `<span class="bg-rose-50 text-rose-600 px-1.5 py-0.5 rounded text-[10px] border border-rose-100 shadow-sm" title="আজ জন্মদিন!"><i class="fa-solid fa-cake-candles"></i></span>`;
+                        } else if (dob.getDate() === tomorrow.getDate() && dob.getMonth() === tomorrow.getMonth()) {
+                            bdayBadge = `<span class="bg-purple-50 text-purple-600 px-1.5 py-0.5 rounded text-[10px] border border-purple-100 shadow-sm" title="আগামীকাল জন্মদিন!"><i class="fa-solid fa-gift"></i></span>`;
+                        }
+                    }
+                }
+
                 listContainer.innerHTML += `  
                     <div onclick="openStudentProfile('${s.id}')" class="bg-white p-3.5 rounded-[20px] shadow-[0_2px_8px_-4px_rgba(0,0,0,0.06)] border border-slate-100 flex items-center gap-3.5 transition-all hover:shadow-md active:scale-[0.98] fade-in mb-3">  
                         <div class="relative shrink-0">
@@ -1426,6 +1472,7 @@ function toggleDashboardView() {
                                 <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded text-[9px] font-bold">ID: ${s.id}</span>  
                                 <span class="bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded text-[9px] font-bold">Roll: ${e2b(s.roll || s.Roll || '-')}</span>
                                 <span class="bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded text-[9px] font-bold">${s.classBn || s.ClassBn || '-'}</span>
+                                ${bdayBadge}
                             </div>  
                         </div>  
                         <div class="shrink-0 text-indigo-400 opacity-40">
