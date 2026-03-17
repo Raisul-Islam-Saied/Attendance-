@@ -132,6 +132,11 @@
         <p id="header-date" class="text-xs text-slate-500 font-medium"></p>  
     </div>  
     <div class="flex items-center gap-3">  
+        
+        <button onclick="toggleDashboardView()" id="btn-dash-toggle" class="w-8 h-8 rounded-full bg-emerald-50 flex justify-center items-center text-emerald-600 shadow-sm active:scale-95 transition-transform" title="ভিউ পরিবর্তন">  
+            <i class="fa-solid fa-users"></i>  
+        </button> 
+
         <div id="sync-indicator" class="w-8 h-8 rounded-full bg-slate-100 flex justify-center items-center text-slate-400 shadow-sm transition-colors">  
             <i class="fa-solid fa-database"></i>  
         </div>  
@@ -139,8 +144,7 @@
             <i class="fa-solid fa-bars-staggered"></i>  
         </button>  
     </div>  
-</header>  
-
+</header> 
 <!-- Main Workspace -->  
 <main class="flex-1 relative overflow-hidden bg-slate-50" id="app-workspace">  
       
@@ -215,8 +219,8 @@
 
 
         <div class="flex justify-between items-center mb-4">  
-            <h3 class="font-bold text-slate-800 text-lg">সর্বশেষ অনুসন্ধানকৃত</h3>  
-            <button onclick="switchTab('history')" class="text-xs text-indigo-600 font-semibold bg-indigo-50 px-3 py-1.5 rounded-full">সব দেখুন</button>  
+            <h3 id="dash-list-title" class="font-bold text-slate-800 text-lg">সর্বশেষ অনুসন্ধানকৃত</h3>  
+ <button onclick="switchTab('history')" class="text-xs text-indigo-600 font-semibold bg-indigo-50 px-3 py-1.5 rounded-full">সব দেখুন</button>  
         </div>  
 
         <div id="dash-recent-list" class="space-y-3">  
@@ -577,13 +581,13 @@
       
     let state = {  
         students: {},          
-        historyData: [], // Replaced daily object with flat array for persistent history        
+        historyData: [], 
+        dashboardViewMode: 'recent', // নতুন টগল স্টেট (recent বা all)
         currentTab: 'dashboard',  
         scanner: null,  
         isScanning: false,  
         scanCooldown: false  
     };  
-
     const e2b = (num) => String(num).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);  
 
     /** * ==========================================  
@@ -609,21 +613,21 @@
         document.getElementById('header-date').innerText = new Date().toLocaleDateString('bn-BD', options);  
     }  
 
-    function loadLocalData() {  
+   function loadLocalData() {  
         try {  
             const storedStudents = localStorage.getItem('premium_app_students');  
             if (storedStudents) state.students = JSON.parse(storedStudents);  
 
+            // টগল স্টেট লোকাল স্টোরেজ থেকে লোড করা
+            const storedViewMode = localStorage.getItem('premium_app_dash_mode');
+            if (storedViewMode) state.dashboardViewMode = storedViewMode;
+
             const storedHistory = localStorage.getItem('premium_app_history');  
             if (storedHistory) {
                 const parsed = JSON.parse(storedHistory);
-                // Migration logic: If it was old object format, convert to array
                 if (!Array.isArray(parsed)) {
                     state.historyData = [];
-                    for(let date in parsed) {
-                        state.historyData.push(...parsed[date]);
-                    }
-                    // Sort latest first
+                    for(let date in parsed) { state.historyData.push(...parsed[date]); }
                     state.historyData.sort((a, b) => b.timestamp - a.timestamp);
                 } else {
                     state.historyData = parsed;
@@ -637,7 +641,6 @@
             console.error("Local storage error:", e);  
         }  
     }  
-
     function saveHistoryData() {  
         localStorage.setItem('premium_app_history', JSON.stringify(state.historyData));  
         updateDashboardUI();  
@@ -1288,6 +1291,7 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
      * UI RENDERERS (Dashboard & History)  
      * ==========================================  
      */  
+        // === ড্যাশবোর্ড UI রি-ডিজাইন (হিস্ট্রির মতো সুন্দর লুক) ===
     function updateDashboardUI() {  
         const totalHistoryData = state.historyData || [];  
         const totalStudents = Object.keys(state.students).length || 1;   
@@ -1300,40 +1304,90 @@ if (jsonResponse.status === 'success' && jsonResponse.data) {
         document.getElementById('dash-percent').innerText = `${e2b(percent)}%`;  
 
         const listContainer = document.getElementById('dash-recent-list');  
+        const listTitle = document.getElementById('dash-list-title');
+        const toggleBtnIcon = document.getElementById('btn-dash-toggle');
+
         listContainer.innerHTML = '';  
 
-        if (totalHistoryData.length === 0) {  
-            listContainer.innerHTML = `  
-                <div class="bg-white rounded-2xl p-6 text-center shadow-sm border border-slate-100">  
-                    <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">  
-                        <i class="fa-solid fa-user-magnifying-glass text-2xl text-slate-300"></i>  
-                    </div>  
-                    <p class="text-slate-500 font-medium">কোনো অনুসন্ধান রেকর্ড নেই</p>  
-                </div>`;  
-            return;  
-        }  
+        // ১. সর্বশেষ অনুসন্ধানকৃত ভিউ (Recent View)
+        if (state.dashboardViewMode === 'recent') {
+            if(listTitle) listTitle.innerText = 'সর্বশেষ অনুসন্ধানকৃত';
+            if(toggleBtnIcon) toggleBtnIcon.innerHTML = '<i class="fa-solid fa-users"></i>';
 
-        totalHistoryData.slice(0, 5).forEach(record => {  
-            const s = state.students[record.id] || { nameBn: 'অজানা', classBn: '-' };  
-            const img = s.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.nameEn || 'S')}&background=f8fafc&color=475569`;  
-            const parts = record.timeStr.split(':');
-const timeOnly = parts[0] + ':' + parts[1] + ' ' + record.timeStr.split(' ')[1];
-const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
-            listContainer.innerHTML += `  
-                <div onclick="openStudentProfile('${record.id}')" class="bg-white p-3 rounded-2xl shadow-sm border border-slate-50 flex items-center gap-4 transition hover:shadow-md cursor-pointer hover:bg-slate-50 active:scale-[0.98]">  
-                    <img src="${img}" class="w-12 h-12 rounded-full object-cover border border-slate-100" onerror="this.src='https://ui-avatars.com/api/?name=S&background=f8fafc'">  
-                    <div class="flex-1 min-w-0">  
-                        <h4 class="font-bold text-slate-800 text-sm truncate">${s.nameBn}</h4>  
-                        <p class="text-xs text-slate-500 truncate">শ্রেণী: ${s.classBn} | আইডি: ${record.id}</p>  
+            if (totalHistoryData.length === 0) {  
+                listContainer.innerHTML = `  
+                    <div class="bg-white rounded-2xl p-8 text-center shadow-sm border border-slate-100 fade-in">  
+                        <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">  
+                            <i class="fa-solid fa-user-magnifying-glass text-2xl text-slate-300"></i>  
+                        </div>  
+                        <p class="text-slate-500 font-medium">কোনো অনুসন্ধান রেকর্ড নেই</p>  
+                    </div>`;  
+                return;  
+            }  
+
+            totalHistoryData.slice(0, 10).forEach(record => {  
+                const s = state.students[record.id] || { nameBn: 'অজানা', classBn: '-' };  
+                const img = s.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.nameEn || 'S')}&background=random`;  
+                
+                const parts = record.timeStr ? record.timeStr.split(':') : ['00','00'];
+                const timeOnly = parts[0] + ':' + parts[1] + ' ' + (record.timeStr ? record.timeStr.split(' ')[1] : '');
+                const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+
+                listContainer.innerHTML += `  
+                    <div onclick="openStudentProfile('${record.id}')" class="bg-white p-3.5 rounded-[20px] shadow-[0_2px_8px_-4px_rgba(0,0,0,0.06)] border border-slate-100 flex items-center gap-3.5 transition-all hover:shadow-md active:scale-[0.98] fade-in mb-3">  
+                        <div class="relative shrink-0">
+                            <img src="${img}" class="w-12 h-12 rounded-full object-cover border-2 border-indigo-50 shadow-sm" onerror="this.src='https://ui-avatars.com/api/?name=S&background=random'">
+                        </div>
+                        <div class="flex-1 min-w-0">  
+                            <h4 class="font-bold text-slate-800 text-[14px] truncate mb-1">${s.nameBn || s.StudentNameBn || 'অজানা'}</h4>  
+                            <div class="flex flex-wrap items-center gap-1.5">  
+                                <span class="bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded text-[9px] font-bold">ID: ${record.id}</span>  
+                                <span class="bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded text-[9px] font-bold">${s.classBn || s.ClassBn || '-'}</span>
+                            </div>  
+                        </div>  
+                        <div class="text-right flex flex-col items-end shrink-0 pl-2 border-l border-slate-50">  
+                            <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md mb-0.5">${timeBn}</span>
+                            <span class="text-[8px] text-slate-400 font-medium">${(record.dateStr || '').replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d])}</span>
+                        </div>  
                     </div>  
-                    <div class="text-right flex flex-col items-end">  
-                        <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md mb-0.5">${timeBn}</span>
-                        <span class="text-[9px] text-slate-400 font-medium">${record.dateStr.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d])}</span>
+                `;  
+            });  
+        } 
+        // ২. সকল শিক্ষার্থী ভিউ (All Students View)
+        else {
+            if(listTitle) listTitle.innerText = 'সকল শিক্ষার্থী (ডাটাবেস)';
+            if(toggleBtnIcon) toggleBtnIcon.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i>';
+
+            const allStudents = Object.values(state.students);
+            if (allStudents.length === 0) {
+                listContainer.innerHTML = `<div class="bg-white rounded-2xl p-8 text-center border border-slate-100"><p class="text-slate-500 font-medium">ডাটাবেসে কোনো শিক্ষার্থী নেই!</p></div>`;
+                return; 
+            }
+
+            allStudents.slice(0, 40).forEach(s => {
+                const img = s.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.nameEn || 'S')}&background=random`;  
+                listContainer.innerHTML += `  
+                    <div onclick="openStudentProfile('${s.id}')" class="bg-white p-3.5 rounded-[20px] shadow-[0_2px_8px_-4px_rgba(0,0,0,0.06)] border border-slate-100 flex items-center gap-3.5 transition-all hover:shadow-md active:scale-[0.98] fade-in mb-3">  
+                        <div class="relative shrink-0">
+                            <img src="${img}" class="w-12 h-12 rounded-full object-cover border-2 border-emerald-50 shadow-sm" onerror="this.src='https://ui-avatars.com/api/?name=S&background=random'">
+                        </div>
+                        <div class="flex-1 min-w-0">  
+                            <h4 class="font-bold text-slate-800 text-[14px] truncate mb-1">${s.nameBn || s.StudentNameBn || s.nameEn || 'অজানা'}</h4>  
+                            <div class="flex flex-wrap items-center gap-1.5">  
+                                <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded text-[9px] font-bold">ID: ${s.id}</span>  
+                                <span class="bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded text-[9px] font-bold">Roll: ${e2b(s.roll || s.Roll || '-')}</span>
+                                <span class="bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded text-[9px] font-bold">${s.classBn || s.ClassBn || '-'}</span>
+                            </div>  
+                        </div>  
+                        <div class="shrink-0 text-indigo-400 opacity-40">
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </div>
                     </div>  
-                </div>  
-            `;  
-        });  
-    }  
+                `;  
+            });
+        }
+    }
+
 
       function renderHistoryUI(searchTerm = '') {  
         const listContainer = document.getElementById('full-history-list');  
