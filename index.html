@@ -1389,7 +1389,7 @@ function toggleDashboardView() {
         if(e.key === 'Enter') {
             window.closeDbSearch(); // এন্টার দিলে সার্চ বার হাইড হবে, কিন্তু রেজাল্ট থাকবে
         } else {
-            renderDbList(); // টাইপ করার সাথে সাথে শুধু লিস্ট আপডেট হবে (ইনপুট ফোকাস হারাবে না)
+            renderDbList(); // টাইপ করার সাথে সাথে শুধু লিস্ট আপডেট হবে (ইনপুট ফোকাস হারাবেবিধা না)
             renderDbHeader(); // ব্যাজ আপডেট করার জন্য
         }
     };
@@ -1627,16 +1627,17 @@ function toggleDashboardView() {
         // === সার্চ লজিক ===
         const rawTerm = window.dbSearchTerm;
         const term = normalizeSearchText(rawTerm);
+        const cleanTermForId = term.replace(/[-\s]/g, ''); // স্পেস বা ড্যাশ থাকলে মুছে ফেলা
         
         if (term) {
             allStudents = allStudents.filter(s => {
                 const nameBn = normalizeSearchText(s.nameBn || s.StudentNameBn || '');
                 const nameEn = normalizeSearchText(s.nameEn || '');
                 const rollStr = normalizeSearchText(s.roll || s.Roll || '');
-                const idStr = normalizeSearchText(s.id || '');
+                const idStr = normalizeSearchText(s.id || '').replace(/[-\s]/g, '');
                 const mobileStr = normalizeSearchText(s.WhatsApp || s.whatsapp || s.Mobile || s.mobile || s.EmergencyNo || '');
                 
-                return nameBn.includes(term) || nameEn.includes(term) || rollStr.includes(term) || idStr.includes(term) || mobileStr.includes(term);
+                return idStr.includes(cleanTermForId) || nameBn.includes(term) || nameEn.includes(term) || rollStr === term || mobileStr.includes(term);
             });
         }
 
@@ -1687,10 +1688,26 @@ function toggleDashboardView() {
             }
         });
 
-        // সর্টিং: যাদের জন্মদিন সবচেয়ে কাছে তারা লিস্টের শুরুতে আসবে
-        allStudents.sort((a, b) => a.daysToBday - b.daysToBday);
+        // সর্টিং: সার্চ থাকলে আইডি ম্যাচিংকে সবার উপরে প্রায়োরিটি দেওয়া হবে
+        allStudents.sort((a, b) => {
+            if (term) {
+                const aId = normalizeSearchText(a.id || '').replace(/[-\s]/g, '');
+                const bId = normalizeSearchText(b.id || '').replace(/[-\s]/g, '');
+                
+                // ১. যদি আইডি হুবহু মিলে যায় (Exact Match), তবে সে সবার আগে
+                if (aId === cleanTermForId && bId !== cleanTermForId) return -1;
+                if (bId === cleanTermForId && aId !== cleanTermForId) return 1;
+                
+                // ২. যদি আইডির অংশবিশেষ মিলে (Partial Match), তবে সে দ্বিতীয় প্রায়োরিটি পাবে
+                if (aId.includes(cleanTermForId) && !bId.includes(cleanTermForId)) return -1;
+                if (bId.includes(cleanTermForId) && !aId.includes(cleanTermForId)) return 1;
+            }
+            
+            // ৩. আর কোনো সার্চ না থাকলে বা আইডির মিল না থাকলে ডিফল্ট জন্মদিনের সর্টিং কাজ করবে
+            return a.daysToBday - b.daysToBday;
+        });
 
-        // এক্সপ্যান্ড স্টেট বা সার্চ থাকলে সব ডাটা দেখাবে, না হলে ২০ টি
+        // এক্সপ্যান্ড স্টেট বা সার্চ থাকলে সব ডাটা দেখাবে, না হলে ১০ টি
         const displayLimit = (window.dbViewExpanded || term) ? allStudents.length : 10;
         let allStudentsHtml = ''; 
 
