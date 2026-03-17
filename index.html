@@ -384,49 +384,63 @@
         </div>
     </div>
 </div>
-
-
-<div id="student-profile-modal" class="fixed inset-0 z-[99999] hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-0 duration-300">
-    <div class="bg-white rounded-[24px] w-full max-w-sm max-h-[85vh] overflow-y-auto custom-scrollbar shadow-2xl transform scale-95 transition-transform duration-300 relative" id="profile-card">
-        <div class="h-28 bg-gradient-to-r from-indigo-500 to-blue-600 relative shrink-0">
-            <button onclick="closeStudentProfile()" class="absolute top-4 right-4 text-white bg-black/20 rounded-full w-8 h-8 flex items-center justify-center backdrop-blur-md active:scale-90 transition-transform z-20"><i class="fa-solid fa-xmark"></i></button>
-            <div class="absolute inset-0 bg-white/10 pattern-dots"></div>
-        </div>
-        <div class="flex justify-center -mt-14 relative z-10 shrink-0">
-            <img id="modal-img" src="" class="w-28 h-28 rounded-full border-4 border-white object-cover shadow-lg bg-white">
-        </div>
-        <div class="p-6 text-center pt-3 pb-6">
-            <h2 id="modal-name-bn" class="text-2xl font-bold text-slate-800 leading-tight"></h2>
-            <p id="modal-name-en" class="text-sm text-slate-500 mb-5 font-medium"></p>
+<div id="student-profile-modal" class="fixed inset-0 z-[99999] hidden flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/50 backdrop-blur-sm transition-opacity opacity-0 duration-300">
+    
+    <div class="bg-slate-50 rounded-t-[32px] sm:rounded-[24px] w-full max-w-md max-h-[92vh] flex flex-col shadow-2xl transform translate-y-full sm:translate-y-0 sm:scale-95 transition-all duration-300 ease-out relative" id="profile-card">
+        
+        <div class="h-32 bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-800 relative shrink-0 rounded-t-[32px] sm:rounded-t-[24px] overflow-hidden">
+            <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 16px 16px;"></div>
             
-            <div class="grid grid-cols-2 gap-3 text-left mb-4">
-                <div class="bg-indigo-50/50 p-3.5 rounded-2xl border border-indigo-100 flex flex-col justify-center">
-                    <span class="text-[10px] text-indigo-400 font-bold uppercase mb-0.5"><i class="fa-regular fa-id-card mr-1"></i> আইডি (ID)</span>
-                    <p id="modal-id" class="font-bold text-slate-700 text-lg leading-none"></p>
-                </div>
-                <div class="bg-blue-50/50 p-3.5 rounded-2xl border border-blue-100 flex flex-col justify-center">
-                    <span class="text-[10px] text-blue-400 font-bold uppercase mb-0.5"><i class="fa-solid fa-hashtag mr-1"></i> রোল (Roll)</span>
-                    <p id="modal-roll" class="font-bold text-slate-700 text-lg leading-none"></p>
-                </div>
-                <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 col-span-2 flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500">
-                        <i class="fa-solid fa-graduation-cap"></i>
-                    </div>
-                    <div>
-                        <span class="text-[10px] text-slate-400 font-bold uppercase block mb-0.5">শ্রেণী (Class)</span>
-                        <p id="modal-class" class="font-bold text-slate-800 text-md leading-none"></p>
-                    </div>
-                </div>
-            </div>
-            
-            <div id="modal-dynamic-data"></div>
-
-            <button onclick="closeStudentProfile()" class="w-full mt-5 bg-slate-900 text-white py-3 rounded-xl font-bold shadow-md active:scale-95 transition-transform">
-                বন্ধ করুন
+            <button onclick="closeStudentProfile()" class="absolute top-5 right-5 bg-black/20 hover:bg-black/30 text-white rounded-full w-8 h-8 flex items-center justify-center backdrop-blur-md transition-colors z-20">
+                <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
+
+        <div class="flex-1 overflow-y-auto custom-scrollbar relative px-6 pb-8 pt-0">
+            
+            <div class="flex justify-between items-end -mt-12 mb-4 relative z-10">
+                <div class="relative">
+                    <img id="modal-img" src="" class="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-slate-50 object-cover shadow-xl bg-white">
+                    <div class="absolute bottom-1 right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full shadow-sm" title="Active"></div>
+                </div>
+                <a id="modal-whatsapp-btn" href="#" target="_blank" class="hidden mb-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full text-[11px] font-bold shadow-md shadow-green-200 transition-transform active:scale-95 flex items-center gap-1.5">
+                    <i class="fa-brands fa-whatsapp text-sm"></i> মেসেজ
+                </a>
+            </div>
+
+            <div class="mb-6 text-left">
+                <h2 id="modal-name-bn" class="text-2xl font-black text-slate-800 leading-tight"></h2>
+                <p id="modal-name-en" class="text-sm text-slate-500 font-medium tracking-wide mt-0.5"></p>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 mb-6">
+                <div class="bg-white py-3 px-2 rounded-[18px] shadow-sm border border-indigo-50 flex flex-col items-center justify-center text-center">
+                    <div class="w-8 h-8 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center mb-1.5"><i class="fa-regular fa-id-card"></i></div>
+                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">আইডি</span>
+                    <p id="modal-id" class="font-bold text-slate-700 text-sm leading-none mt-1"></p>
+                </div>
+                <div class="bg-white py-3 px-2 rounded-[18px] shadow-sm border border-emerald-50 flex flex-col items-center justify-center text-center">
+                    <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mb-1.5"><i class="fa-solid fa-hashtag"></i></div>
+                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">রোল</span>
+                    <p id="modal-roll" class="font-bold text-slate-700 text-sm leading-none mt-1"></p>
+                </div>
+                <div class="bg-white py-3 px-2 rounded-[18px] shadow-sm border border-amber-50 flex flex-col items-center justify-center text-center">
+                    <div class="w-8 h-8 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mb-1.5"><i class="fa-solid fa-graduation-cap"></i></div>
+                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">শ্রেণী</span>
+                    <p id="modal-class" class="font-bold text-slate-700 text-sm leading-none mt-1"></p>
+                </div>
+            </div>
+
+            <div id="modal-dynamic-data" class="space-y-2.5">
+                </div>
+        </div>
     </div>
-</div> <div id="pdf-export-modal" class="fixed inset-0 z-[99999] hidden items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md transition-opacity opacity-0 duration-300">
+</div>
+</div> 
+    
+    
+    
+    <div id="pdf-export-modal" class="fixed inset-0 z-[99999] hidden items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md transition-opacity opacity-0 duration-300">
     <div class="bg-slate-50 rounded-[24px] w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl transform scale-95 transition-transform duration-300 relative" id="pdf-modal-card">
         
         <div class="px-6 py-4 bg-white rounded-t-[24px] border-b border-slate-200 flex justify-between items-center shrink-0">
@@ -644,36 +658,69 @@
      * STUDENT PROFILE MODAL (ALL DATA INCLUDED)
      * ==========================================  
      */ 
-    function openStudentProfile(studentId) {
+     function openStudentProfile(studentId) {
         const student = state.students[studentId];
         if(!student) return;
 
-        // Set Basic Fixed Data
+        // Base Info & Image
         const defaultImg = `https://ui-avatars.com/api/?name=${encodeURIComponent(student.nameEn || 'S')}&background=4F46E5&color=fff&bold=true&size=200`;
         document.getElementById('modal-img').src = student.image || defaultImg;
         document.getElementById('modal-img').onerror = function() { this.src = defaultImg; };
-        
-        document.getElementById('modal-name-bn').innerText = student.nameBn || '-';
-        document.getElementById('modal-name-en').innerText = student.nameEn || '';
-        document.getElementById('modal-id').innerText = student.id || '-';
-        document.getElementById('modal-roll').innerText = student.roll || '-';
-        document.getElementById('modal-class').innerText = student.classBn || '-';
 
-        // --- DYNAMIC DATA RENDERING (All other database fields) ---
+        // Name & Main Data
+        document.getElementById('modal-name-bn').innerText = student.nameBn || student.StudentNameBn || '-';
+        document.getElementById('modal-name-en').innerText = student.nameEn || student.StudentNameEn || '';
+        document.getElementById('modal-id').innerText = student.id || '-';
+        document.getElementById('modal-roll').innerText = e2b(student.roll || student.Roll || '-');
+        document.getElementById('modal-class').innerText = student.classBn || student.ClassBn || '-';
+
+        // === Smart WhatsApp Action Button Logic ===
+        const waBtn = document.getElementById('modal-whatsapp-btn');
+        const waNum = student.WhatsApp || student.whatsapp || student.Mobile || student.mobile || student.EmergencyNo;
+        if (waNum) {
+            let cleanNum = String(waNum).replace(/[^0-9]/g, '');
+            if(cleanNum.startsWith('0')) cleanNum = '88' + cleanNum; // Auto-add BD country code
+            waBtn.href = `https://wa.me/${cleanNum}`;
+            waBtn.classList.remove('hidden');
+        } else {
+            waBtn.classList.add('hidden');
+        }
+
+        // === Render Premium Dynamic Data Cards ===
         const dynamicContainer = document.getElementById('modal-dynamic-data');
         dynamicContainer.innerHTML = '';
 
-        // Keys that are already shown in the top header, ignore them below
-        const excludeKeys = ['id', 'ID', 'nameBn', 'StudentNameBn', 'Name (Bn)', 'Name', 'nameEn', 'StudentNameEn', 'Name (En)', 'classBn', 'ClassBn', 'Class (Bn)', 'roll', 'Roll', 'image', 'ImageURL', 'Image URL', 'imageUrl'];
+        const excludeKeys = ['id', 'ID', 'nameBn', 'StudentNameBn', 'Name (Bn)', 'Name', 'nameEn', 'StudentNameEn', 'Name (En)', 'classBn', 'ClassBn', 'Class (Bn)', 'roll', 'Roll', 'image', 'ImageURL', 'Image URL', 'imageUrl', 'timestamp'];
 
         let html = '';
         for (const [key, value] of Object.entries(student)) {
-            // Check if key is not excluded, and value exists
-            if (!excludeKeys.includes(key) && value && String(value).trim() !== '') {
+            if (!excludeKeys.includes(key) && value !== null && value !== undefined && String(value).trim() !== '') {
+                
+                // Key Formatting (Translating English Keys to Bengali for better UI)
+                let formattedKey = key.replace(/([A-Z])/g, ' $1').trim();
+                if(key === 'BloodGroup') formattedKey = 'রক্তের গ্রুপ';
+                if(key === 'FatherNameBn') formattedKey = 'পিতার নাম';
+                if(key === 'MotherNameBn') formattedKey = 'মাতার নাম';
+                if(key === 'DOB' || key === 'dob') formattedKey = 'জন্ম তারিখ';
+                if(key === 'WhatsApp' || key === 'EmergencyNo') formattedKey = 'যোগাযোগ (মোবাইল)';
+                if(key === 'BRN') formattedKey = 'জন্ম নিবন্ধন নং';
+                if(key === 'Gender' || key === 'gender') formattedKey = 'লিঙ্গ';
+
+                // Display Value Formatting
+                let displayValue = value;
+                if((key === 'DOB' || key === 'dob') && String(value).includes('-')) {
+                     try { displayValue = e2b(new Date(value).toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' })); } catch(e){}
+                }
+
                 html += `
-                    <div class="flex justify-between items-center py-2.5 border-b border-slate-100 last:border-0">
-                        <span class="text-xs text-slate-500 font-bold capitalize">${key.replace(/([A-Z])/g, ' $1').trim()}</span>
-                        <span class="text-sm text-slate-800 font-medium text-right max-w-[65%] leading-tight">${value}</span>
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-100 shadow-sm flex items-start gap-3 hover:border-indigo-200 transition-colors">
+                        <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center shrink-0 text-indigo-400 mt-0.5 border border-slate-100">
+                            <i class="fa-solid fa-list-ul text-[11px]"></i>
+                        </div>
+                        <div class="flex-1 min-w-0 pt-0.5">
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-0.5">${formattedKey}</span>
+                            <span class="block text-sm font-semibold text-slate-700 leading-snug break-words">${displayValue}</span>
+                        </div>
                     </div>
                 `;
             }
@@ -681,58 +728,50 @@
 
         if (html !== '') {
             dynamicContainer.innerHTML = `
-                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-left shadow-inner">
-                    <h3 class="text-xs font-bold text-indigo-600 mb-2 border-b border-indigo-100 pb-2"><i class="fa-solid fa-layer-group mr-1"></i> বিস্তারিত তথ্য</h3>
-                    ${html}
-                </div>
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 mt-4 pl-1 flex items-center gap-2">
+                    <i class="fa-solid fa-folder-open"></i> অন্যান্য তথ্য
+                </h3>
+                ${html}
             `;
         }
 
-        // Show Modal with Animation
+        // === Open Modal with Bottom-Sheet Animation ===
         const modal = document.getElementById('student-profile-modal');
         const card = document.getElementById('profile-card');
         
         modal.classList.remove('hidden');
         setTimeout(() => {
             modal.classList.remove('opacity-0');
-            card.classList.remove('scale-95');
-            card.classList.add('scale-100');
+            if (window.innerWidth < 640) {
+                card.classList.remove('translate-y-full'); // Mobile Slide-up
+            } else {
+                card.classList.remove('scale-95'); // Desktop Fade-in
+            }
         }, 10);
+        
         history.pushState({ modal: true }, "");
     }
-// Modal background click close
-document.getElementById("student-profile-modal").addEventListener("click", function(e) {
-    const card = document.getElementById("profile-card");
-    if (!card.contains(e.target)) {
-        closeStudentProfile();
-    }
-});
-    // ফিল্টার মডালের বাইরে (ব্যাকগ্রাউন্ডে) ক্লিক করলে বন্ধ হওয়ার লজিক
-document.getElementById("filter-modal").addEventListener("click", function(e) {
-    const card = document.getElementById("filter-modal-card");
-    if (!card.contains(e.target)) {
-        closeFilterModal();
-    }
-});
+
     function closeStudentProfile() {
+        const modal = document.getElementById('student-profile-modal');
+        const card = document.getElementById('profile-card');
 
-    const modal = document.getElementById('student-profile-modal');
-    const card = document.getElementById('profile-card');
+        modal.classList.add('opacity-0');
+        if (window.innerWidth < 640) {
+            card.classList.add('translate-y-full');
+        } else {
+            card.classList.add('scale-95');
+        }
 
-    modal.classList.add('opacity-0');
-    card.classList.remove('scale-100');
-    card.classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
 
-    setTimeout(() => {
-        modal.classList.add('hidden');
-    }, 300);
-
-    // back history
-    if (history.state && history.state.modal) {
-        history.back();
+        if (history.state && history.state.modal) {
+            history.back();
+        }
     }
 
-}
     /** * ==========================================  
      * DATA FETCHING MODULE (API)  
      * ==========================================  
