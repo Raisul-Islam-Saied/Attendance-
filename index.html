@@ -1457,7 +1457,7 @@ function toggleDashboardView() {
             // সর্টিং: যাদের জন্মদিন সবচেয়ে কাছে তারা লিস্টের শুরুতে আসবে
             allStudents.sort((a, b) => a.daysToBday - b.daysToBday);
 
-            allStudents.slice(0, 50).forEach(s => {
+            allStudents.forEach(s => {
                 const img = s.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.nameEn || 'S')}&background=random`;  
                 listContainer.innerHTML += `  
                     <div onclick="openStudentProfile('${s.id}')" class="bg-white p-3.5 rounded-[20px] shadow-[0_2px_8px_-4px_rgba(0,0,0,0.06)] border border-slate-100 flex items-center gap-3.5 transition-all hover:shadow-md active:scale-[0.98] fade-in mb-3">  
