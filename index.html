@@ -2036,11 +2036,27 @@ async function generateSuperPDF() {
     printEngine.innerHTML = htmlContent;
     
     closePdfModal();
+    // === ফাইলের নাম ডাইনামিক করার আপডেট লজিক ===
+    const originalTitle = document.title; // আগের আসল টাইটেল সেভ করে রাখা
+    let fileName = document.getElementById('pdf-subtitle').value.trim(); 
+    if (!fileName) fileName = document.getElementById('pdf-title').value.trim(); 
+    
+    if (fileName) {
+        // ফাইলের নাম থেকে /n বা \n রিমুভ করে স্পেস বসানো
+        fileName = fileName.replace(/(\/n|\\n)/g, ' ').replace(/\s+/g, ' ').trim();
+    } else {
+        fileName = 'Student_Report'; // ডিফল্ট নাম
+    }
+    
+    document.title = fileName; // সাময়িকভাবে HTML টাইটেল পরিবর্তন
+    // ===========================================
 
     setTimeout(() => {
         window.print();
-        btn.innerHTML = '<i class="fa-solid fa-print"></i> পিডিএফ তৈরি করুন';
+        btn.innerHTML = '<i class="fa-solid fa-print"></i> তৈরি করুন';
         btn.disabled = false;
+           setTimeout(() => { document.title = originalTitle; }, 2000);
+
     }, 500);
 }
 
