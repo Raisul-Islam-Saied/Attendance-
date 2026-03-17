@@ -1323,9 +1323,10 @@ function toggleDashboardView() {
     const modeName = state.dashboardViewMode === 'recent' ? 'রিসেন্ট লিস্ট' : 'সম্পূর্ণ ডাটাবেস';
   //  Toast.fire({ icon: 'info', title: `ভিউ পরিবর্তন: ${modeName}` });
 }
-           // --- গ্লোবাল ভ্যারিয়েবল ও ফাংশন (ডাটাবেস এক্সপ্যান্ড করার জন্য) ---
-      // --- গ্লোবাল ভ্যারিয়েবল ও ফাংশন (ডাটাবেস এক্সপ্যান্ড করার জন্য) ---
+              // --- গ্লোবাল ভ্যারিয়েবল ও ফাংশন (ডাটাবেস এক্সপ্যান্ড এবং সার্চ করার জন্য) ---
     window.dbViewExpanded = window.dbViewExpanded || false;
+    window.dbSearchTerm = window.dbSearchTerm || '';
+    window.isDbSearchOpen = window.isDbSearchOpen || false;
 
     window.expandDatabaseList = function() {
         window.dbViewExpanded = true;
@@ -1334,9 +1335,71 @@ function toggleDashboardView() {
 
     window.collapseDatabaseList = function() {
         window.dbViewExpanded = false;
+        // যদি কলাপ্স করা হয়, তবে সার্চ ক্লিয়ার হয়ে যাবে
+        window.dbSearchTerm = '';
         updateDashboardUI();
     };
 
+    // বাইরে ক্লিক করলে সার্চ বার হাইড হওয়ার লজিক
+    if (!window.dbSearchClickOutsideAttached) {
+        document.addEventListener('click', function(e) {
+            const searchContainer = document.getElementById('db-search-container');
+            const searchBtn = document.getElementById('db-search-toggle-btn');
+            if (window.isDbSearchOpen && searchContainer && !searchContainer.contains(e.target) && (!searchBtn || !searchBtn.contains(e.target))) {
+                window.isDbSearchOpen = false;
+                renderDbHeader(); // শুধু হেডার আপডেট হবে, ইনপুট হাইড হবে
+            }
+        });
+        window.dbSearchClickOutsideAttached = true;
+    }
+
+    window.toggleDbSearch = function(e) {
+        if(e) e.stopPropagation();
+        window.isDbSearchOpen = true;
+        renderDbHeader();
+        setTimeout(() => {
+            const input = document.getElementById('db-search-input');
+            if(input) {
+                input.focus();
+                // কার্সার একদম শেষে নেওয়ার জন্য
+                const val = input.value;
+                input.value = '';
+                input.value = val;
+            }
+        }, 50);
+    };
+
+    window.closeDbSearch = function() {
+        window.isDbSearchOpen = false;
+        renderDbHeader();
+    };
+
+    window.handleDbSearchInput = function(e) {
+        window.dbSearchTerm = e.target.value.trim();
+        if(e.key === 'Enter') {
+            window.closeDbSearch(); // এন্টার দিলে সার্চ বার হাইড হবে, কিন্তু রেজাল্ট থাকবে
+        } else {
+            renderDbList(); // টাইপ করার সাথে সাথে শুধু লিস্ট আপডেট হবে (ইনপুট ফোকাস হারাবে না)
+            renderDbHeader(); // ব্যাজ আপডেট করার জন্য
+        }
+    };
+
+    window.clearDbSearch = function() {
+        window.dbSearchTerm = '';
+        const input = document.getElementById('db-search-input');
+        if(input) input.value = '';
+        renderDbList();
+        renderDbHeader();
+    };
+
+    // Helper function for converting Bangla digits to English for accurate searching
+    function normalizeSearchText(str) {
+        if (!str) return '';
+        const bnToEn = {'০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9'};
+        return String(str).replace(/[০-৯]/g, d => bnToEn[d] || d).toLowerCase().trim();
+    }
+
+    // মূল আপডেট ড্যাশবোর্ড ফাংশন
     function updateDashboardUI() {  
         const totalHistoryData = state.historyData || [];  
         const totalStudents = Object.keys(state.students).length || 1;   
@@ -1352,26 +1415,37 @@ function toggleDashboardView() {
         const listTitle = document.getElementById('dash-list-title');
         const toggleBtnIcon = document.getElementById('btn-dash-toggle');
         
-        // ফিক্স: শুধুমাত্র টাইটেলের ঠিক পাশের বাটনটিকেই ধরা হবে, নিচের নেভবার সুরক্ষিত থাকবে
-        const viewAllBtn = listTitle ? listTitle.nextElementSibling : null;
+        const viewAllBtn = document.querySelector("button[onclick=\"switchTab('history')\"]") || document.querySelector("button[onclick=\"expandDatabaseList()\"]") || document.querySelector("button[onclick=\"collapseDatabaseList()\"]") || (listTitle ? listTitle.nextElementSibling : null);
 
         if (!listContainer) return;
-        listContainer.innerHTML = '';  
 
         // ১. সর্বশেষ অনুসন্ধানকৃত ভিউ (Recent View)
         if (state.dashboardViewMode === 'recent') {
-            window.dbViewExpanded = false; // রিসেন্ট ভিউতে গেলে এক্সপ্যান্ড মুড রিসেট হবে
-            if(listTitle) listTitle.innerText = 'সর্বশেষ অনুসন্ধানকৃত';
+            window.dbViewExpanded = false; 
+            window.dbSearchTerm = '';
+            window.isDbSearchOpen = false;
+
+            // সার্চ বাটন রিমুভ করা হচ্ছে রিসেন্ট ভিউ থেকে
+            const customSearch = document.getElementById('db-search-container');
+            if(customSearch) customSearch.remove();
+            const searchToggle = document.getElementById('db-search-toggle-btn');
+            if(searchToggle) searchToggle.remove();
+
+            if(listTitle) {
+                listTitle.innerText = 'সর্বশেষ অনুসন্ধানকৃত';
+                listTitle.style.opacity = '1';
+                listTitle.style.display = 'block';
+            }
             if(toggleBtnIcon) toggleBtnIcon.innerHTML = '<i class="fa-solid fa-users"></i>';
             
-            // বাটনটিকে তার অরিজিনাল অবস্থায় (হিস্ট্রিতে যাওয়ার জন্য) ফিরিয়ে আনা হচ্ছে
             if(viewAllBtn && viewAllBtn.tagName === 'BUTTON') {
                 viewAllBtn.classList.remove('hidden');
                 viewAllBtn.innerText = 'সব দেখুন';
                 viewAllBtn.setAttribute('onclick', "switchTab('history')");
-                viewAllBtn.className = "text-xs text-indigo-600 font-semibold bg-indigo-50 px-3 py-1.5 rounded-full transition-all active:scale-95";
+                viewAllBtn.className = "text-xs text-indigo-600 font-semibold bg-indigo-50 px-3 py-1.5 rounded-full transition-all active:scale-95 shrink-0";
             }
 
+            listContainer.innerHTML = '';  
             if (totalHistoryData.length === 0) {  
                 listContainer.innerHTML = `  
                     <div class="bg-white rounded-2xl p-8 text-center shadow-sm border border-slate-100 fade-in">  
@@ -1393,128 +1467,226 @@ function toggleDashboardView() {
                 const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
 
                recentHtml += `  
-    <div onclick="openStudentProfile('${record.id}')" class="bg-white p-3.5 rounded-[20px] shadow-[0_2px_8px_-4px_rgba(0,0,0,0.06)] border border-slate-100 flex items-center justify-between gap-1 transition-all hover:shadow-md active:scale-[0.98] fade-in mb-3">  
-        
-        <div class="flex items-center gap-3 min-w-0 flex-1">
-            <div class="relative shrink-0">
-                <img src="${img}" class="w-12 h-12 rounded-full object-cover border-2 border-indigo-50 shadow-sm" onerror="this.src='https://ui-avatars.com/api/?name=S&background=random'">
-            </div>
-            
-            <div class="flex-1 min-w-0">  
-                <h4 class="font-bold text-slate-800 text-[14px] truncate mb-1">${s.nameBn || s.StudentNameBn || 'অজানা'}</h4>  
-                <div class="flex flex-wrap gap-1">  
-                    <span class="inline-flex items-center gap-1 bg-indigo-50 text-indigo-600 px-1 py-0.5 rounded-md text-[9px] font-bold border border-indigo-100/50">
-                         ${record.id}
-                    </span>  
-                    <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-600 px-1 py-0.5 rounded-md text-[9px] font-bold border border-emerald-100/50">
-                        <i class="fa-solid fa-hashtag text-[8px]"></i> ${s.roll || '-'}
-                    </span>  
-                    <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-600 px-1 py-0.5 rounded-md text-[9px] font-bold border border-amber-100/50 truncate">
-                        ${s.classBn || '-'}
-                    </span>
-                </div>   
-            </div>
-        </div>
-
-        <div class="text-right flex flex-col items-end shrink-0 pl-2 border-l border-slate-50 ml-1">  
-            <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md mb-0.5 whitespace-nowrap">${timeBn}</span>
-            <span class="text-[8px] text-slate-400 font-medium whitespace-nowrap">${(record.dateStr || '').replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d])}</span>
-        </div>  
-    </div>`;
+                <div onclick="openStudentProfile('${record.id}')" class="bg-white p-3.5 rounded-[20px] shadow-[0_2px_8px_-4px_rgba(0,0,0,0.06)] border border-slate-100 flex items-center justify-between gap-1 transition-all hover:shadow-md active:scale-[0.98] fade-in mb-3">  
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                        <div class="relative shrink-0">
+                            <img src="${img}" class="w-12 h-12 rounded-full object-cover border-2 border-indigo-50 shadow-sm" onerror="this.src='https://ui-avatars.com/api/?name=S&background=random'">
+                        </div>
+                        <div class="flex-1 min-w-0">  
+                            <h4 class="font-bold text-slate-800 text-[14px] truncate mb-1">${s.nameBn || s.StudentNameBn || 'অজানা'}</h4>  
+                            <div class="flex flex-wrap gap-1">  
+                                <span class="inline-flex items-center gap-1 bg-indigo-50 text-indigo-600 px-1 py-0.5 rounded-md text-[9px] font-bold border border-indigo-100/50">${record.id}</span>  
+                                <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-600 px-1 py-0.5 rounded-md text-[9px] font-bold border border-emerald-100/50"><i class="fa-solid fa-hashtag text-[8px]"></i> ${s.roll || '-'}</span>  
+                                <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-600 px-1 py-0.5 rounded-md text-[9px] font-bold border border-amber-100/50 truncate">${s.classBn || '-'}</span>
+                            </div>   
+                        </div>
+                    </div>
+                    <div class="text-right flex flex-col items-end shrink-0 pl-2 border-l border-slate-50 ml-1">  
+                        <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md mb-0.5 whitespace-nowrap">${timeBn}</span>
+                        <span class="text-[8px] text-slate-400 font-medium whitespace-nowrap">${(record.dateStr || '').replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d])}</span>
+                    </div>  
+                </div>`;
             });  
             listContainer.innerHTML = recentHtml;
         } 
         // ২. সকল শিক্ষার্থী ভিউ (All Students View)
         else {
             if(toggleBtnIcon) toggleBtnIcon.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i>';
-            if(listTitle) listTitle.innerText = 'সকল শিক্ষার্থী (ডাটাবেস)';
-
-            // বাটনটির ফাংশনালিটি ডাইনামিক করা হচ্ছে ডাটাবেস ভিউ এর জন্য (এক্সপ্যান্ড/কলাপ্স করতে)
-            if(viewAllBtn && viewAllBtn.tagName === 'BUTTON') {
-                viewAllBtn.classList.remove('hidden');
-                if (!window.dbViewExpanded) {
-                    viewAllBtn.innerText = 'সব দেখুন';
-                    viewAllBtn.setAttribute('onclick', "expandDatabaseList()");
-                    viewAllBtn.className = "text-xs text-indigo-600 font-semibold bg-indigo-50 px-3 py-1.5 rounded-full transition-all active:scale-95";
-                } else {
-                    viewAllBtn.innerText = 'কম দেখুন';
-                    viewAllBtn.setAttribute('onclick', "collapseDatabaseList()");
-                    viewAllBtn.className = "text-xs text-slate-600 font-semibold bg-slate-100 px-3 py-1.5 rounded-full transition-all active:scale-95";
-                }
-            }
-
-            const allStudents = Object.values(state.students);
-            if (allStudents.length === 0) {
-                listContainer.innerHTML = `<div class="bg-white rounded-2xl p-8 text-center border border-slate-100"><p class="text-slate-500 font-medium">ডাটাবেসে কোনো শিক্ষার্থী নেই!</p></div>`;
-                return; 
-            }
-
-            // === জন্মদিনের লজিক ও সর্টিং ===
-            const today = new Date();
-            today.setHours(0, 0, 0, 0); 
-
-            allStudents.forEach(s => {
-                s.daysToBday = 9999; 
-                s.bdayBadge = '';
-                const dobStr = s.DOB || s.dob;
-
-                if (dobStr) {
-                    const dObj = new Date(dobStr);
-                    if (!isNaN(dObj.getTime())) {
-                        const bMonth = dObj.getMonth();
-                        const bDate = dObj.getDate();
-
-                        let bdayThisYear = new Date(today.getFullYear(), bMonth, bDate);
-                        bdayThisYear.setHours(0, 0, 0, 0);
-                        
-                        if (bdayThisYear.getTime() < today.getTime()) {
-                            bdayThisYear.setFullYear(today.getFullYear() + 1);
-                        }
-
-                        const diffTime = bdayThisYear.getTime() - today.getTime();
-                        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-
-                        s.daysToBday = diffDays;
-
-                        if (diffDays === 0) {
-                            s.bdayBadge = '<i class="fa-solid fa-cake-candles text-rose-500 animate-bounce ml-1.5" title="আজ জন্মদিন!"></i>';
-                        } else if (diffDays === 1) {
-                            s.bdayBadge = '<i class="fa-solid fa-gift text-amber-500 ml-1.5" title="আগামীকাল জন্মদিন!"></i>';
-                        }
-                    }
-                }
-            });
-
-            // সর্টিং: যাদের জন্মদিন সবচেয়ে কাছে তারা লিস্টের শুরুতে আসবে
-            allStudents.sort((a, b) => a.daysToBday - b.daysToBday);
-
-            // এক্সপ্যান্ড স্টেট অনুযায়ী লিস্টের সাইজ নির্ধারণ
-            const displayLimit = window.dbViewExpanded ? allStudents.length : 10;
-            let allStudentsHtml = ''; 
-
-            allStudents.slice(0, displayLimit).forEach(s => {
-                const img = s.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.nameEn || 'S')}&background=random`;  
-                allStudentsHtml += `  
-                    <div onclick="openStudentProfile('${s.id}')" class="bg-white p-3.5 rounded-[20px] shadow-[0_2px_8px_-4px_rgba(0,0,0,0.06)] border border-slate-100 flex items-center gap-3.5 transition-all hover:shadow-md active:scale-[0.98] fade-in mb-3">  
-                        <div class="relative shrink-0">
-                            <img src="${img}" class="w-12 h-12 rounded-full object-cover border-2 border-emerald-50 shadow-sm" onerror="this.src='https://ui-avatars.com/api/?name=S&background=random'">
-                        </div>
-                        <div class="flex-1 min-w-0">  
-                            <h4 class="font-bold text-slate-800 text-[14px] truncate mb-1">${s.nameBn || s.StudentNameBn || s.nameEn || 'অজানা'}${s.bdayBadge}</h4>  
-                            <div class="flex flex-wrap items-center gap-1.5">  
-                                <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded text-[9px] font-bold">ID: ${s.id}</span>  
-                                <span class="bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded text-[9px] font-bold">Roll: ${e2b(s.roll || s.Roll || '-')}</span>
-                                <span class="bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded text-[9px] font-bold">${s.classBn || s.ClassBn || '-'}</span>
-                            </div>  
-                        </div>  
-                        <div class="shrink-0 text-indigo-400 opacity-40">
-                            <i class="fa-solid fa-chevron-right text-xs"></i>
-                        </div>
-                    </div>`;  
-            });
-            listContainer.innerHTML = allStudentsHtml;
+            renderDbHeader();
+            renderDbList();
         }
     }
+
+    // আলাদা হেডার রেন্ডার ফাংশন (যেন টাইপ করার সময় সার্চ ইনপুট ফোকাস না হারায়)
+    window.renderDbHeader = function() {
+        const listTitle = document.getElementById('dash-list-title');
+        const viewAllBtn = document.querySelector("button[onclick=\"switchTab('history')\"]") || document.querySelector("button[onclick=\"expandDatabaseList()\"]") || document.querySelector("button[onclick=\"collapseDatabaseList()\"]") || (listTitle ? listTitle.nextElementSibling : null);
+        const headerParent = listTitle ? listTitle.parentElement : null;
+
+        if (!headerParent) return;
+        headerParent.classList.add('relative', 'w-full');
+
+        // Search Toggle Button
+        let searchToggleBtn = document.getElementById('db-search-toggle-btn');
+        if (!searchToggleBtn) {
+            searchToggleBtn = document.createElement('button');
+            searchToggleBtn.id = 'db-search-toggle-btn';
+            searchToggleBtn.onclick = window.toggleDbSearch;
+            if (viewAllBtn) {
+                headerParent.insertBefore(searchToggleBtn, viewAllBtn);
+            } else {
+                headerParent.appendChild(searchToggleBtn);
+            }
+        }
+
+        searchToggleBtn.className = `ml-auto mr-2 w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-95 ${window.dbSearchTerm ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'} relative z-10 shrink-0`;
+        searchToggleBtn.innerHTML = `
+            <i class="fa-solid fa-search text-sm"></i>
+            ${window.dbSearchTerm ? '<span class="absolute top-[2px] right-[2px] w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>' : ''}
+        `;
+        searchToggleBtn.style.display = window.isDbSearchOpen ? 'none' : 'flex';
+
+        // Search Input Container
+        let searchContainer = document.getElementById('db-search-container');
+        if (!searchContainer) {
+            searchContainer = document.createElement('div');
+            searchContainer.id = 'db-search-container';
+            searchContainer.className = 'absolute right-[85px] top-1/2 -translate-y-1/2 bg-white flex items-center transition-all duration-300 overflow-hidden z-20 rounded-full shadow-sm border border-slate-200';
+            headerParent.appendChild(searchContainer);
+            
+            // Initial innerHTML for the input to bind events properly
+            searchContainer.innerHTML = `
+                <div class="relative w-full flex items-center">
+                    <i class="fa-solid fa-search absolute left-3 text-slate-400 text-xs"></i>
+                    <input type="text" id="db-search-input" value="${window.dbSearchTerm}" placeholder="নাম, রোল, আইডি, নম্বর..." 
+                           class="w-full bg-slate-50 text-slate-700 text-xs py-2 pl-8 pr-8 outline-none focus:bg-white transition-all h-8"
+                           onkeyup="handleDbSearchInput(event)">
+                    <button id="db-clear-btn" onclick="clearDbSearch()" class="absolute right-2 text-slate-400 hover:text-red-500 w-5 h-5 flex items-center justify-center hidden"><i class="fa-solid fa-xmark text-xs"></i></button>
+                </div>
+            `;
+        }
+
+        // Update clear button visibility inside search
+        const clearBtn = document.getElementById('db-clear-btn');
+        if (clearBtn) {
+            clearBtn.className = `absolute right-2 text-slate-400 hover:text-red-500 w-5 h-5 flex items-center justify-center ${window.dbSearchTerm ? '' : 'hidden'}`;
+        }
+
+        searchContainer.style.width = window.isDbSearchOpen ? 'calc(100% - 90px)' : '0px';
+        searchContainer.style.opacity = window.isDbSearchOpen ? '1' : '0';
+        searchContainer.style.pointerEvents = window.isDbSearchOpen ? 'auto' : 'none';
+
+        // Title text animation
+        if(listTitle) {
+            listTitle.innerText = 'সকল শিক্ষার্থী';
+            listTitle.className = "font-bold text-slate-800 text-lg transition-all duration-300 truncate";
+            if (window.isDbSearchOpen) {
+                listTitle.style.opacity = '0';
+                listTitle.style.pointerEvents = 'none';
+            } else {
+                listTitle.style.opacity = '1';
+                listTitle.style.pointerEvents = 'auto';
+            }
+        }
+
+        // Expand/Collapse Button
+        if(viewAllBtn && viewAllBtn.tagName === 'BUTTON') {
+            viewAllBtn.classList.remove('hidden');
+            if (!window.dbViewExpanded && !window.dbSearchTerm) {
+                viewAllBtn.innerText = 'সব দেখুন';
+                viewAllBtn.setAttribute('onclick', "expandDatabaseList()");
+                viewAllBtn.className = "text-[11px] text-indigo-600 font-bold bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-full transition-all active:scale-95 shrink-0 relative z-30 shadow-sm";
+            } else {
+                viewAllBtn.innerText = 'কম দেখুন';
+                viewAllBtn.setAttribute('onclick', "collapseDatabaseList()");
+                viewAllBtn.className = "text-[11px] text-slate-600 font-bold bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full transition-all active:scale-95 shrink-0 relative z-30 shadow-sm";
+            }
+        }
+    };
+
+    // আলাদা লিস্ট রেন্ডার ফাংশন
+    window.renderDbList = function() {
+        const listContainer = document.getElementById('dash-recent-list');
+        if (!listContainer) return;
+
+        let allStudents = Object.values(state.students);
+        if (allStudents.length === 0) {
+            listContainer.innerHTML = `<div class="bg-white rounded-2xl p-8 text-center border border-slate-100"><p class="text-slate-500 font-medium">ডাটাবেসে কোনো শিক্ষার্থী নেই!</p></div>`;
+            return; 
+        }
+
+        // === সার্চ লজিক ===
+        const rawTerm = window.dbSearchTerm;
+        const term = normalizeSearchText(rawTerm);
+        
+        if (term) {
+            allStudents = allStudents.filter(s => {
+                const nameBn = normalizeSearchText(s.nameBn || s.StudentNameBn || '');
+                const nameEn = normalizeSearchText(s.nameEn || '');
+                const rollStr = normalizeSearchText(s.roll || s.Roll || '');
+                const idStr = normalizeSearchText(s.id || '');
+                const mobileStr = normalizeSearchText(s.WhatsApp || s.whatsapp || s.Mobile || s.mobile || s.EmergencyNo || '');
+                
+                return nameBn.includes(term) || nameEn.includes(term) || rollStr.includes(term) || idStr.includes(term) || mobileStr.includes(term);
+            });
+        }
+
+        if (allStudents.length === 0) {
+            listContainer.innerHTML = `
+                <div class="bg-white rounded-[20px] p-8 text-center shadow-sm border border-slate-100 fade-in mt-2">  
+                    <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">  
+                        <i class="fa-solid fa-search text-2xl text-slate-300"></i>  
+                    </div>  
+                    <p class="text-slate-500 font-medium">খুঁজে পাওয়া যায়নি</p>  
+                </div>`;
+            return;
+        }
+
+        // === জন্মদিনের লজিক ও সর্টিং ===
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); 
+
+        allStudents.forEach(s => {
+            s.daysToBday = 9999; 
+            s.bdayBadge = '';
+            const dobStr = s.DOB || s.dob;
+
+            if (dobStr) {
+                const dObj = new Date(dobStr);
+                if (!isNaN(dObj.getTime())) {
+                    const bMonth = dObj.getMonth();
+                    const bDate = dObj.getDate();
+
+                    let bdayThisYear = new Date(today.getFullYear(), bMonth, bDate);
+                    bdayThisYear.setHours(0, 0, 0, 0);
+                    
+                    if (bdayThisYear.getTime() < today.getTime()) {
+                        bdayThisYear.setFullYear(today.getFullYear() + 1);
+                    }
+
+                    const diffTime = bdayThisYear.getTime() - today.getTime();
+                    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+                    s.daysToBday = diffDays;
+
+                    if (diffDays === 0) {
+                        s.bdayBadge = '<i class="fa-solid fa-cake-candles text-rose-500 animate-bounce ml-1.5" title="আজ জন্মদিন!"></i>';
+                    } else if (diffDays === 1) {
+                        s.bdayBadge = '<i class="fa-solid fa-gift text-amber-500 ml-1.5" title="আগামীকাল জন্মদিন!"></i>';
+                    }
+                }
+            }
+        });
+
+        // সর্টিং: যাদের জন্মদিন সবচেয়ে কাছে তারা লিস্টের শুরুতে আসবে
+        allStudents.sort((a, b) => a.daysToBday - b.daysToBday);
+
+        // এক্সপ্যান্ড স্টেট বা সার্চ থাকলে সব ডাটা দেখাবে, না হলে ২০ টি
+        const displayLimit = (window.dbViewExpanded || term) ? allStudents.length : 10;
+        let allStudentsHtml = ''; 
+
+        allStudents.slice(0, displayLimit).forEach(s => {
+            const img = s.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.nameEn || 'S')}&background=random`;  
+            allStudentsHtml += `  
+                <div onclick="openStudentProfile('${s.id}')" class="bg-white p-3.5 rounded-[20px] shadow-[0_2px_8px_-4px_rgba(0,0,0,0.06)] border border-slate-100 flex items-center gap-3.5 transition-all hover:shadow-md active:scale-[0.98] fade-in mb-3">  
+                    <div class="relative shrink-0">
+                        <img src="${img}" class="w-12 h-12 rounded-full object-cover border-2 border-emerald-50 shadow-sm" onerror="this.src='https://ui-avatars.com/api/?name=S&background=random'">
+                    </div>
+                    <div class="flex-1 min-w-0">  
+                        <h4 class="font-bold text-slate-800 text-[14px] truncate mb-1">${s.nameBn || s.StudentNameBn || s.nameEn || 'অজানা'}${s.bdayBadge}</h4>  
+                        <div class="flex flex-wrap items-center gap-1.5">  
+                            <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded text-[9px] font-bold">ID: ${s.id}</span>  
+                            <span class="bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded text-[9px] font-bold">Roll: ${e2b(s.roll || s.Roll || '-')}</span>
+                            <span class="bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded text-[9px] font-bold">${s.classBn || s.ClassBn || '-'}</span>
+                        </div>  
+                    </div>  
+                    <div class="shrink-0 text-indigo-400 opacity-40">
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </div>
+                </div>`;  
+        });
+        listContainer.innerHTML = allStudentsHtml;
+    };
 
       function renderHistoryUI(searchTerm = '') {  
         const listContainer = document.getElementById('full-history-list');  
