@@ -1323,7 +1323,20 @@ function toggleDashboardView() {
     const modeName = state.dashboardViewMode === 'recent' ? 'রিসেন্ট লিস্ট' : 'সম্পূর্ণ ডাটাবেস';
   //  Toast.fire({ icon: 'info', title: `ভিউ পরিবর্তন: ${modeName}` });
 }
-         function updateDashboardUI() {  
+           // --- গ্লোবাল ভ্যারিয়েবল ও ফাংশন (ডাটাবেস এক্সপ্যান্ড করার জন্য) ---
+    window.dbViewExpanded = window.dbViewExpanded || false;
+
+    window.expandDatabaseList = function() {
+        window.dbViewExpanded = true;
+        updateDashboardUI();
+    };
+
+    window.collapseDatabaseList = function() {
+        window.dbViewExpanded = false;
+        updateDashboardUI();
+    };
+
+    function updateDashboardUI() {  
         const totalHistoryData = state.historyData || [];  
         const totalStudents = Object.keys(state.students).length || 1;   
           
@@ -1345,6 +1358,7 @@ function toggleDashboardView() {
 
         // ১. সর্বশেষ অনুসন্ধানকৃত ভিউ (Recent View)
         if (state.dashboardViewMode === 'recent') {
+            window.dbViewExpanded = false; // রিসেন্ট ভিউতে গেলে এক্সপ্যান্ড মুড রিসেট হবে
             if(listTitle) listTitle.innerText = 'সর্বশেষ অনুসন্ধানকৃত';
             if(toggleBtnIcon) toggleBtnIcon.innerHTML = '<i class="fa-solid fa-users"></i>';
             if(viewAllBtn) viewAllBtn.classList.remove('hidden'); // রিসেন্ট মোডে বাটন দেখাবে
@@ -1360,6 +1374,7 @@ function toggleDashboardView() {
                 return;  
             }  
 
+            let recentHtml = '';
             totalHistoryData.slice(0, 10).forEach(record => {  
                 const s = state.students[record.id] || { nameBn: 'অজানা', classBn: '-' };  
                 const img = s.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.nameEn || 'S')}&background=random`;  
@@ -1368,7 +1383,7 @@ function toggleDashboardView() {
                 const timeOnly = parts[0] + ':' + parts[1] + ' ' + (record.timeStr ? record.timeStr.split(' ')[1] : '');
                 const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
 
-               listContainer.innerHTML += `  
+               recentHtml += `  
     <div onclick="openStudentProfile('${record.id}')" class="bg-white p-3.5 rounded-[20px] shadow-[0_2px_8px_-4px_rgba(0,0,0,0.06)] border border-slate-100 flex items-center justify-between gap-1 transition-all hover:shadow-md active:scale-[0.98] fade-in mb-3">  
         
         <div class="flex items-center gap-3 min-w-0 flex-1">
@@ -1398,12 +1413,21 @@ function toggleDashboardView() {
         </div>  
     </div>`;
             });  
+            listContainer.innerHTML = recentHtml;
         } 
         // ২. সকল শিক্ষার্থী ভিউ (All Students View)
         else {
-            if(listTitle) listTitle.innerText = 'সকল শিক্ষার্থী (ডাটাবেস)';
             if(toggleBtnIcon) toggleBtnIcon.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i>';
-            if(viewAllBtn) viewAllBtn.classList.add('hidden'); // ডাটাবেস মোডে বাটন হাইড হবে
+            if(viewAllBtn) viewAllBtn.classList.add('hidden'); // ডিফল্ট হিস্ট্রি বাটন হাইড হবে
+
+            // ডাইনামিক বাটন ইনজেক্ট করা হচ্ছে
+            if(listTitle) {
+                if (!window.dbViewExpanded) {
+                    listTitle.innerHTML = 'সকল শিক্ষার্থী <button onclick="expandDatabaseList()" class="ml-2 text-[11px] bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full font-bold active:scale-95 transition-transform border border-indigo-100 shadow-sm"><i class="fa-solid fa-angle-down mr-1"></i>সব দেখুন</button>';
+                } else {
+                    listTitle.innerHTML = 'সকল শিক্ষার্থী <button onclick="collapseDatabaseList()" class="ml-2 text-[11px] bg-slate-50 text-slate-600 px-3 py-1 rounded-full font-bold active:scale-95 transition-transform border border-slate-200 shadow-sm"><i class="fa-solid fa-angle-up mr-1"></i>কম দেখুন</button>';
+                }
+            }
 
             const allStudents = Object.values(state.students);
             if (allStudents.length === 0) {
@@ -1413,7 +1437,7 @@ function toggleDashboardView() {
 
             // === জন্মদিনের লজিক ও সর্টিং (টাইমজোন বাগ ফিক্সড) ===
             const today = new Date();
-            today.setHours(0, 0, 0, 0); // আজকের দিনের একদম শুরু
+            today.setHours(0, 0, 0, 0); 
 
             allStudents.forEach(s => {
                 s.daysToBday = 9999; 
@@ -1422,21 +1446,17 @@ function toggleDashboardView() {
 
                 if (dobStr) {
                     const dObj = new Date(dobStr);
-                    // ইনভ্যালিড ডেট না হলে
                     if (!isNaN(dObj.getTime())) {
                         const bMonth = dObj.getMonth();
                         const bDate = dObj.getDate();
 
-                        // এই বছরের জন্য জন্মদিনের অবজেক্ট তৈরি
                         let bdayThisYear = new Date(today.getFullYear(), bMonth, bDate);
                         bdayThisYear.setHours(0, 0, 0, 0);
                         
-                        // যদি এই বছর জন্মদিন পার হয়ে গিয়ে থাকে, তবে আগামী বছরের হিসাব ধরবে
                         if (bdayThisYear.getTime() < today.getTime()) {
                             bdayThisYear.setFullYear(today.getFullYear() + 1);
                         }
 
-                        // কয়দিন বাকি তার নিখুঁত ক্যালকুলেশন
                         const diffTime = bdayThisYear.getTime() - today.getTime();
                         const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
@@ -1454,9 +1474,13 @@ function toggleDashboardView() {
             // সর্টিং: যাদের জন্মদিন সবচেয়ে কাছে তারা লিস্টের শুরুতে আসবে
             allStudents.sort((a, b) => a.daysToBday - b.daysToBday);
 
-            allStudents.slice(0, 50).forEach(s => {
+            // এক্সপ্যান্ড স্টেট অনুযায়ী লিস্টের সাইজ নির্ধারণ
+            const displayLimit = window.dbViewExpanded ? allStudents.length : 20;
+            let allStudentsHtml = ''; // 0% Performance drop নিশ্চিত করার জন্য String Builder 
+
+            allStudents.slice(0, displayLimit).forEach(s => {
                 const img = s.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.nameEn || 'S')}&background=random`;  
-                listContainer.innerHTML += `  
+                allStudentsHtml += `  
                     <div onclick="openStudentProfile('${s.id}')" class="bg-white p-3.5 rounded-[20px] shadow-[0_2px_8px_-4px_rgba(0,0,0,0.06)] border border-slate-100 flex items-center gap-3.5 transition-all hover:shadow-md active:scale-[0.98] fade-in mb-3">  
                         <div class="relative shrink-0">
                             <img src="${img}" class="w-12 h-12 rounded-full object-cover border-2 border-emerald-50 shadow-sm" onerror="this.src='https://ui-avatars.com/api/?name=S&background=random'">
@@ -1474,6 +1498,7 @@ function toggleDashboardView() {
                         </div>
                     </div>`;  
             });
+            listContainer.innerHTML = allStudentsHtml;
         }
     }
 
