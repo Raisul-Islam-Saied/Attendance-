@@ -1207,23 +1207,45 @@ const timeBn = timeOnly.replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d])
             });
         }
 
-        // 2. Advanced Sorting Logic
+              // 2. Advanced Sorting Logic (Powerful & Smart Sort)
         const sortVal = document.getElementById('sort-history').value;
+        
+        // ক্লাসের লজিক্যাল সিরিয়াল (ছোট থেকে বড়)
+        const classOrderMap = { "প্লে": 1, "নার্সারি": 2, "কেজি": 3, "১ম": 4, "২য়": 5, "৩য়": 6, "৪র্থ": 7, "৫ম": 8, "৬ষ্ঠ": 9, "৭ম": 10, "৮ম": 11, "৯ম": 12, "১০ম": 13 };
+
         filteredData.sort((a, b) => {
             const sA = state.students[a.id] || {};
             const sB = state.students[b.id] || {};
 
             if (sortVal === 'time_desc') return b.timestamp - a.timestamp;
             if (sortVal === 'time_asc') return a.timestamp - b.timestamp;
+            
             if (sortVal === 'name_asc') {
                 const nameA = sA.nameBn || sA.nameEn || '';
                 const nameB = sB.nameBn || sB.nameEn || '';
                 return nameA.localeCompare(nameB);
             }
+            
             if (sortVal === 'class_asc') {
-                const classA = sA.classBn || '';
-                const classB = sB.classBn || '';
-                return classA.localeCompare(classB);
+                // ১. প্রথমে ক্লাস অনুযায়ী সাজানো (লজিক্যাল র‍্যাংক)
+                const classA = (sA.classBn || '').trim();
+                const classB = (sB.classBn || '').trim();
+                
+                const rankA = classOrderMap[classA] || 99; // অজানা ক্লাস থাকলে সবার শেষে যাবে
+                const rankB = classOrderMap[classB] || 99;
+
+                if (rankA !== rankB) {
+                    return rankA - rankB; // ছোট ক্লাস আগে আসবে
+                } 
+                else {
+                    // ২. ক্লাস একই হলে রোল অনুযায়ী সাজানো (বাংলা সংখ্যাকে ইংরেজিতে রূপান্তর করে সর্ট করা)
+                    const b2e = str => String(str).replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d));
+                    
+                    const rollA = parseInt(b2e(sA.roll || '99999'), 10) || 99999;
+                    const rollB = parseInt(b2e(sB.roll || '99999'), 10) || 99999;
+                    
+                    return rollA - rollB; // ছোট রোল আগে আসবে
+                }
             }
             return 0;
         });
