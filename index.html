@@ -1323,7 +1323,7 @@ function toggleDashboardView() {
     const modeName = state.dashboardViewMode === 'recent' ? 'রিসেন্ট লিস্ট' : 'সম্পূর্ণ ডাটাবেস';
   //  Toast.fire({ icon: 'info', title: `ভিউ পরিবর্তন: ${modeName}` });
 }
-    function updateDashboardUI() {  
+       function updateDashboardUI() {  
         const totalHistoryData = state.historyData || [];  
         const totalStudents = Object.keys(state.students).length || 1;   
           
@@ -1397,8 +1397,6 @@ function toggleDashboardView() {
             <span class="text-[8px] text-slate-400 font-medium whitespace-nowrap">${(record.dateStr || '').replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d])}</span>
         </div>  
     </div>`;
-
-
             });  
         } 
         // ২. সকল শিক্ষার্থী ভিউ (All Students View)
@@ -1413,6 +1411,52 @@ function toggleDashboardView() {
                 return; 
             }
 
+            // === জন্মদিনের লজিক ও সর্টিং (পারফরম্যান্স অপটিমাইজড) ===
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            const currentMonth = today.getMonth();
+            const currentDate = today.getDate();
+
+            allStudents.forEach(s => {
+                s.daysToBday = 9999; 
+                s.bdayBadge = '';
+                const dobStr = s.DOB || s.dob;
+
+                if (dobStr) {
+                    let bMonth, bDate;
+                    if (dobStr.includes('-')) {
+                        const parts = dobStr.split('T')[0].split('-');
+                        bMonth = parseInt(parts[1], 10) - 1;
+                        bDate = parseInt(parts[2], 10);
+                    } else {
+                        const dObj = new Date(dobStr);
+                        if (!isNaN(dObj.getTime())) {
+                            bMonth = dObj.getMonth();
+                            bDate = dObj.getDate();
+                        }
+                    }
+
+                    if (bMonth !== undefined && !isNaN(bMonth) && !isNaN(bDate)) {
+                        let d1 = new Date(currentYear, currentMonth, currentDate);
+                        let d2 = new Date(currentYear, bMonth, bDate);
+                        
+                        if (d2 < d1) d2.setFullYear(currentYear + 1);
+                        
+                        const diffDays = Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
+                        s.daysToBday = diffDays;
+
+                        if (diffDays === 0) {
+                            s.bdayBadge = '<i class="fa-solid fa-cake-candles text-rose-500 animate-bounce ml-1.5" title="আজ জন্মদিন!"></i>';
+                        } else if (diffDays === 1) {
+                            s.bdayBadge = '<i class="fa-solid fa-gift text-amber-500 ml-1.5" title="আগামীকাল জন্মদিন!"></i>';
+                        }
+                    }
+                }
+            });
+
+            // সর্টিং: যাদের জন্মদিন সবচেয়ে কাছে তারা লিস্টের শুরুতে আসবে
+            allStudents.sort((a, b) => a.daysToBday - b.daysToBday);
+
             allStudents.slice(0, 50).forEach(s => {
                 const img = s.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.nameEn || 'S')}&background=random`;  
                 listContainer.innerHTML += `  
@@ -1421,7 +1465,7 @@ function toggleDashboardView() {
                             <img src="${img}" class="w-12 h-12 rounded-full object-cover border-2 border-emerald-50 shadow-sm" onerror="this.src='https://ui-avatars.com/api/?name=S&background=random'">
                         </div>
                         <div class="flex-1 min-w-0">  
-                            <h4 class="font-bold text-slate-800 text-[14px] truncate mb-1">${s.nameBn || s.StudentNameBn || s.nameEn || 'অজানা'}</h4>  
+                            <h4 class="font-bold text-slate-800 text-[14px] truncate mb-1">${s.nameBn || s.StudentNameBn || s.nameEn || 'অজানা'}${s.bdayBadge}</h4>  
                             <div class="flex flex-wrap items-center gap-1.5">  
                                 <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded text-[9px] font-bold">ID: ${s.id}</span>  
                                 <span class="bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded text-[9px] font-bold">Roll: ${e2b(s.roll || s.Roll || '-')}</span>
