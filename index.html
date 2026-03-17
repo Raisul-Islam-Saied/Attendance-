@@ -1306,8 +1306,7 @@ function toggleDashboardView() {
     const modeName = state.dashboardViewMode === 'recent' ? 'রিসেন্ট লিস্ট' : 'সম্পূর্ণ ডাটাবেস';
     Toast.fire({ icon: 'info', title: `ভিউ পরিবর্তন: ${modeName}` });
 }
-
-       function updateDashboardUI() {  
+    function updateDashboardUI() {  
         const totalHistoryData = state.historyData || [];  
         const totalStudents = Object.keys(state.students).length || 1;   
           
@@ -1359,15 +1358,17 @@ function toggleDashboardView() {
                         </div>
                         <div class="flex-1 min-w-0">  
                             <h4 class="font-bold text-slate-800 text-[14px] truncate mb-1">${s.nameBn || s.StudentNameBn || 'অজানা'}</h4>  
-                             <div class="flex flex-wrap items-center gap-1.5">  
-                            <span class="inline-flex items-center gap-1 bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md text-[9px] font-bold border border-indigo-100/50">
-                           </span>  
-                            <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md text-[9px] font-bold border border-emerald-100/50">
+                            <div class="flex flex-wrap  gap-1.5">  
+                            <span class="inline-flex items-center gap-1 bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md text-[10px] font-bold border border-indigo-100/50">
+                                 ${record.id}
+                            </span>  
+                            <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md text-[10px] font-bold border border-emerald-100/50">
                                 <i class="fa-solid fa-hashtag"></i> ${s.roll || '-'}
                             </span>  
-                            <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-600 px-2 py-0.5 rounded-md text-[9px] font-bold border border-amber-100/50">
-                                 </span>
-                       
+                            <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-600 px-2 py-0.5 rounded-md text-[10px] font-bold border border-amber-100/50">
+                                ${s.classBn || '-'}
+                            </span>
+                        </div>   
                         </div>  
                         <div class="text-right flex flex-col items-end shrink-0 pl-2 border-l border-slate-50">  
                             <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md mb-0.5">${timeBn}</span>
