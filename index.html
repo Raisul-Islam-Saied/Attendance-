@@ -520,18 +520,27 @@
         </div>
     <select id="plain-field-selector" onchange="addPlainField(this.value)" class="w-full bg-slate-50 border border-slate-200 text-sm rounded-xl px-4 py-2.5 outline-none font-bold focus:border-indigo-400 text-slate-700">
     <option value="">+ নতুন তথ্য যুক্ত করুন</option>
-    <option value="serial">সিরিয়াল নং (১. ২.)</option>
-    <option value="roll">রোল</option>
+    <option value="serial">ক্রমিক নং (১. ২.)</option>
     <option value="nameBn">নাম (বাংলা)</option>
-    <option value="nameEn">নাম (ইংরেজি)</option>
-    <option value="classBn">শ্রেণী</option>
-    <option value="id">আইডি</option>
-    <option value="gender">লিঙ্গ (ছাত্র/ছাত্রী)</option>
-    <option value="BloodGroup">রক্তের গ্রুপ</option>
+    <option value="id">আইডি (ID)</option>
+    <option value="roll">রোল (Roll)</option>
+    <option value="classBn">শ্রেণি</option>
     <option value="FatherNameBn">পিতার নাম (বাংলা)</option>
     <option value="MotherNameBn">মাতার নাম (বাংলা)</option>
+    <option value="address">ঠিকানা (সম্পূর্ণ)</option>
     <option value="WhatsApp">মোবাইল নম্বর</option>
+    <option value="age">বয়স</option>
+    <option value="DOB">জন্ম তারিখ</option>
+    <option value="BRN">জন্ম নিবন্ধন (BRN)</option>
+    <option value="gender">লিঙ্গ</option>
+    <option value="BloodGroup">রক্তের গ্রুপ</option>
+    <option value="Session">সেশন</option>
+    <option value="nameEn">নাম (ইংরেজি)</option>
+    <option value="FatherNameEn">পিতার নাম (ইংরেজি)</option>
+    <option value="MotherNameEn">মাতার নাম (ইংরেজি)</option>
+    <option value="EmergencyNo">জরুরি নম্বর</option>
 </select>
+
                         </div>
 
             </div>
@@ -1620,10 +1629,12 @@ function setPdfFormat(format) {
 
 let plainFieldsOrder = [ 'roll', 'nameBn'];
 const plainFieldLabels = {
-    serial: 'সিরিয়াল', roll: 'রোল', nameBn: 'নাম (বাংলা)', nameEn: 'নাম (ইংরেজি)', 
-    classBn: 'শ্রেণী', id: 'আইডি', gender: 'লিঙ্গ', BloodGroup: 'রক্তের গ্রুপ', 
-    FatherNameBn: 'পিতা', MotherNameBn: 'মাতা', WhatsApp: 'মোবাইল'
+    serial: 'সিরিয়াল', nameBn: 'নাম', id: 'আইডি', roll: 'রোল', classBn: 'শ্রেণি',
+    FatherNameBn: 'পিতা', MotherNameBn: 'মাতা', address: 'ঠিকানা', WhatsApp: 'মোবাইল',
+    age: 'বয়স', DOB: 'জন্ম তারিখ', BRN: 'জন্ম নিবন্ধন', gender: 'লিঙ্গ', BloodGroup: 'রক্তের গ্রুপ',
+    Session: 'সেশন', nameEn: 'নাম (Eng)', FatherNameEn: 'পিতা (Eng)', MotherNameEn: 'মাতা (Eng)', EmergencyNo: 'জরুরি নম্বর'
 };
+
 
 
 function renderPlainFields() {
@@ -1683,20 +1694,28 @@ function renderTableColumns() {
     container.innerHTML = '';
     
     // ডাটাবেসের সাধারণ ফিল্ডগুলোর লিস্ট (ড্রপডাউনের জন্য)
-        const fieldOptions = [
-        {val: 'serial', text: 'ক্রমিক নং (Serial)'},
+            const fieldOptions = [
+        {val: 'serial', text: 'ক্রমিক নং'},
+        {val: 'nameBn', text: 'নাম (বাংলা)'},
         {val: 'id', text: 'আইডি (ID)'},
         {val: 'roll', text: 'রোল (Roll)'},
-        {val: 'nameBn', text: 'নাম (বাংলা)'},
-        {val: 'nameEn', text: 'নাম (ইংরেজি)'},
-        {val: 'classBn', text: 'শ্রেণী (Class)'},
+        {val: 'classBn', text: 'শ্রেণি (Class)'},
+        {val: 'FatherNameBn', text: 'পিতার নাম (বাংলা)'},
+        {val: 'MotherNameBn', text: 'মাতার নাম (বাংলা)'},
+        {val: 'address', text: 'ঠিকানা (সম্পূর্ণ)'},
+        {val: 'WhatsApp', text: 'মোবাইল নম্বর'},
+        {val: 'age', text: 'বয়স (Age)'},
+        {val: 'DOB', text: 'জন্ম তারিখ'},
+        {val: 'BRN', text: 'জন্ম নিবন্ধন (BRN)'},
         {val: 'gender', text: 'লিঙ্গ (Gender)'},
-        {val: 'BloodGroup', text: 'রক্তের গ্রুপ (Blood)'}, // এটি আপডেট করা হয়েছে
-        {val: 'FatherNameBn', text: 'পিতার নাম (Father)'},
-        {val: 'MotherNameBn', text: 'মাতার নাম (Mother)'},
-        {val: 'session', text: 'সেশন (Session)'},
-        {val: 'address', text: 'ঠিকানা (Address)'}
+        {val: 'BloodGroup', text: 'রক্তের গ্রুপ'},
+        {val: 'Session', text: 'সেশন (Session)'},
+        {val: 'nameEn', text: 'নাম (ইংরেজি)'},
+        {val: 'FatherNameEn', text: 'পিতার নাম (ইংরেজি)'},
+        {val: 'MotherNameEn', text: 'মাতার নাম (ইংরেজি)'},
+        {val: 'EmergencyNo', text: 'জরুরি নম্বর'}
     ];
+
 
 
     pdfConfig.tableColumns.forEach((col, index) => {
@@ -1837,9 +1856,28 @@ async function generateSuperPDF() {
                 
                 if(col.type === 'blank') {
                     cellData = e2b(col.default || '');
-                } else if(col.field === 'serial') {
+                                } else if(col.field === 'serial') {
                     cellData = e2b(index + 1);
                 } else {
+                    let rawVal = s[col.field] || s[col.field.toLowerCase()] || s[col.field.charAt(0).toUpperCase() + col.field.slice(1)] || '-';
+                    
+                    if (col.field === 'gender') rawVal = guessGender(s);
+                    else if (col.field === 'address') {
+                        rawVal = [s.HouseNameBn, s.VillageBn, s.WardNo ? 'ওয়ার্ড: '+e2b(s.WardNo) : '', s.UnionBn, s.UpazilaBn, s.DistrictBn].filter(Boolean).join(', ');
+                        if(!rawVal) rawVal = '-';
+                    }
+                    else if (col.field === 'age') {
+                        let a = calculateAge(s.DOB || s.dob);
+                        rawVal = a !== null ? a + ' বছর' : '-';
+                    }
+                    else if (col.field === 'DOB' && rawVal !== '-') {
+                        // জন্ম তারিখ সুন্দর করে দেখানোর জন্য
+                        rawVal = new Date(rawVal).toLocaleDateString('bn-BD');
+                    }
+                    
+                    cellData = e2b(rawVal);
+                }
+ else {
                     let rawVal = s[col.field] || s[col.field.toLowerCase()] || s[col.field.charAt(0).toUpperCase() + col.field.slice(1)] || '-';
                     if (col.field === 'gender') rawVal = guessGender(s);
                     cellData = e2b(rawVal);
@@ -1938,8 +1976,19 @@ async function generateSuperPDF() {
 
                 plainFieldsOrder.forEach(f => {
                     let val = '';
-                    if (f === 'serial') val = e2b(serialCount) + '.'; 
+                                        if (f === 'serial') val = e2b(serialCount) + '.'; 
                     else if (f === 'gender') val = guessGender(s);
+                    else if (f === 'address') {
+                        val = [s.HouseNameBn, s.VillageBn, s.WardNo ? 'ওয়ার্ড: '+e2b(s.WardNo) : '', s.UnionBn, s.UpazilaBn, s.DistrictBn].filter(Boolean).join(', ');
+                    }
+                    else if (f === 'age') {
+                        let a = calculateAge(s.DOB || s.dob);
+                        val = a !== null ? e2b(a) + ' বছর' : '';
+                    }
+                    else if (f === 'DOB') {
+                        let d = s.DOB || s.dob;
+                        val = d ? e2b(new Date(d).toLocaleDateString('bn-BD')) : '';
+                    }
                     else val = s[f] || s[f.toLowerCase()] || ''; 
 
                     if (val) {
