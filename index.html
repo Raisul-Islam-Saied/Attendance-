@@ -1713,7 +1713,7 @@ function toggleDashboardView() {
         }
 
         // Expand/Collapse Button (protected from breaking bottom nav)
-        if(viewAllBtn) {
+      /*  if(viewAllBtn) {
             viewAllBtn.classList.remove('hidden');
             if (!window.dbViewExpanded && !window.dbSearchTerm) {
                 viewAllBtn.innerText = 'সব দেখুন';
@@ -1723,7 +1723,12 @@ function toggleDashboardView() {
                 viewAllBtn.innerText = 'কম দেখুন';
                 viewAllBtn.setAttribute('onclick', "collapseDatabaseList()");
                 viewAllBtn.className = "text-[11px] text-slate-600 font-bold bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full transition-all active:scale-95 shrink-0 relative z-30 shadow-sm hiddden "; // ইনফিনিট স্ক্রল থাকায় এটি হাইড করে রাখা হলো
-            }
+            }*/
+                // ইনফিনিট স্ক্রল থাকায় "সকল শিক্ষার্থী" (All) মোডে "সব দেখুন" বাটনটি হাইড করা হলো
+        if(viewAllBtn) {
+            viewAllBtn.classList.add('hidden');
+        }
+
         }
     };
 
