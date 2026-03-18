@@ -578,15 +578,15 @@
         </div>
     </div>
 </div>
-<div id="image-viewer-modal" class="fixed inset-0 z-[999999] hidden items-center justify-center bg-slate-900/60 backdrop-blur-xl transition-opacity duration-300 opacity-0" onclick="closeImageViewer()">
+<div id="image-viewer-modal" class="fixed inset-0 z-[999999] hidden items-center justify-center bg-slate-900/40 backdrop-blur-lg transition-opacity duration-300 opacity-0" onclick="closeImageViewer()">
     
-    <div class="absolute top-4 right-4 z-[1000000] flex items-center gap-3">
-        <button onclick="downloadViewerImage(event)" class="w-10 h-10 bg-white/20 hover:bg-white/30 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-all active:scale-90 shadow-lg border border-white/10" title="ছবি ডাউনলোড করুন">
-            <i class="fa-solid fa-download"></i>
+    <div class="absolute top-5 right-5 z-[1000000] flex items-center gap-6">
+        <button onclick="downloadViewerImage(event)" class="text-white/80 hover:text-white transition-transform active:scale-90 outline-none drop-shadow-md" title="ছবি ডাউনলোড করুন">
+            <i class="fa-solid fa-download text-[22px]"></i>
         </button>
 
-        <button onclick="closeImageViewer()" class="w-10 h-10 bg-red-500/80 hover:bg-red-500 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-all active:scale-90 shadow-lg border border-white/10" title="বন্ধ করুন">
-            <i class="fa-solid fa-xmark text-xl"></i>
+        <button onclick="closeImageViewer()" class="text-white/80 hover:text-white transition-transform active:scale-90 outline-none drop-shadow-md" title="বন্ধ করুন">
+            <i class="fa-solid fa-xmark text-3xl"></i>
         </button>
     </div>
 
@@ -594,6 +594,7 @@
         <img id="viewer-full-img" src="" class="max-w-full max-h-full object-contain rounded-[20px] shadow-2xl transform scale-50 transition-transform duration-300 ease-out cursor-default" onclick="event.stopPropagation()">
     </div>
 </div>
+
 
 <div id="print-engine"></div>
 <!-- JavaScript Application Logic -->  
@@ -719,7 +720,9 @@ function closeImageViewer(fromPopState = false) {
 }
 
 // ছবি ডাউনলোড করার ফাংশন
-function downloadViewerImage(event) {
+
+// ছবি সরাসরি (Auto Download) ডাউনলোড করার নেক্সট-লেভেল ফাংশন
+async function downloadViewerImage(event) {
     event.stopPropagation(); // ডাউনলোড বাটনে ক্লিক করলে যেন মডাল বন্ধ না হয়ে যায়
     
     const imgElement = document.getElementById('viewer-full-img');
@@ -727,21 +730,48 @@ function downloadViewerImage(event) {
     
     if (!imgSrc) return;
 
-    // যদি ইমেজটি UI-Avatars (ডিফল্ট) হয়, তবে সেটি সরাসরি সেভ করা যাবে
-    // আর যদি আপনার সার্ভারের ইমেজ হয়, তবে এই লজিকটি ব্রাউজারে সরাসরি ডাউনলোড ট্রিগার করবে
-    const link = document.createElement('a');
-    link.href = imgSrc;
-    
-    // ডাউনলোড ফাইলের নাম ডাইনামিক করা হলো
-    const studentName = document.getElementById('modal-name-en')?.innerText || 'Student';
-    link.download = `${studentName}_Profile_Picture.jpg`; 
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
+    // ইউজারকে বোঝানোর জন্য একটি মেসেজ
     if(typeof Toast !== 'undefined') {
-        Toast.fire({ icon: 'success', title: 'ডাউনলোড শুরু হয়েছে!' });
+        Toast.fire({ icon: 'info', title: 'ডাউনলোড শুরু হচ্ছে...' });
+    }
+
+    try {
+        // Fetch API দিয়ে ছবিটিকে ফাইল (Blob) হিসেবে নিয়ে আসা হচ্ছে
+        const response = await fetch(imgSrc);
+        const blob = await response.blob();
+        
+        // Blob থেকে লোকাল অবজেক্ট ইউআরএল তৈরি
+        const blobUrl = window.URL.createObjectURL(blob);
+        
+        // ডাইনামিক ফাইলের নাম (স্টুডেন্টের নাম অনুযায়ী)
+        const studentName = document.getElementById('modal-name-en')?.innerText || 'Student';
+        const fileName = `${studentName}_Profile.jpg`;
+
+        // অটো ডাউনলোড ট্রিগার
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fileName; 
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // মেমোরি ক্লিন আপ
+        window.URL.revokeObjectURL(blobUrl);
+
+        if(typeof Toast !== 'undefined') {
+            Toast.fire({ icon: 'success', title: 'সফলভাবে সেভ হয়েছে!' });
+        }
+    } catch (error) {
+        console.error("ডাউনলোড ফেইল হয়েছে:", error);
+        // যদি কোনো কারণে সিকিউরিটি ব্লক করে, তবে ফলব্যাক (Fallback) হিসেবে নতুন ট্যাবে ওপেন হবে
+        const link = document.createElement('a');
+        link.href = imgSrc;
+        link.target = '_blank';
+        link.download = 'Profile_Picture.jpg';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 }
 
