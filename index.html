@@ -1439,17 +1439,7 @@ function toggleDashboardView() {
     
     // লোকাল স্টোরেজে মোডটি সেভ রাখা
     localStorage.setItem('premium_app_dash_mode', state.dashboardViewMode);
-    if (viewAllBtn) {
-        if (state.dashboardViewMode === 'recent') {
-            // রিসেন্ট মোডে বাটন শো করবে
-            viewAllBtn.classList.remove('hidden');
-            viewAllBtn.style.display = 'inline-block';
-        } else {
-            // সকল শিক্ষার্থী (All) মোডে বাটন হাইড হয়ে যাবে
-            viewAllBtn.classList.add('hidden');
-            viewAllBtn.style.display = 'none';
-        }
-    }
+    
     // ড্যাশবোর্ড রি-রেন্ডার করা
     updateDashboardUI();
     
@@ -1487,20 +1477,10 @@ function toggleDashboardView() {
         window.dbSearchClickOutsideAttached = true;
     }
 
-        window.toggleDbSearch = function(e) {
+    window.toggleDbSearch = function(e) {
         if(e) e.stopPropagation();
         window.isDbSearchOpen = true;
         renderDbHeader();
-        
-        // সার্চ বারে ক্লিক করার সাথে সাথে স্মুথলি স্ক্রল করে উপরে (সার্চ বারের কাছে) নিয়ে আসা
-        const listTitle = document.getElementById('dash-list-title');
-        if (listTitle && listTitle.parentElement) {
-            listTitle.parentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } else {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // স্ক্রল হওয়ার জন্য একটু সময় (৩০০ মিলিসেকেন্ড) দিয়ে তারপর ইনপুটে ফোকাস করা
         setTimeout(() => {
             const input = document.getElementById('db-search-input');
             if(input) {
@@ -1510,9 +1490,8 @@ function toggleDashboardView() {
                 input.value = '';
                 input.value = val;
             }
-        }, 300); 
+        }, 50);
     };
-
 
     window.closeDbSearch = function() {
         window.isDbSearchOpen = false;
@@ -1739,14 +1718,12 @@ function toggleDashboardView() {
             if (!window.dbViewExpanded && !window.dbSearchTerm) {
                 viewAllBtn.innerText = 'সব দেখুন';
                 viewAllBtn.setAttribute('onclick', "expandDatabaseList()");
-                viewAllBtn.className = "text-[11px] text-indigo-600 font-bold bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-full transition-all active:scale-95 shrink-0 relative z-30 shadow-sm hidden"; // ইনফিনিট স্ক্রল থাকায় এটি হাইড করে রাখা হলো
+                viewAllBtn.className = "text-[11px] text-indigo-600 font-bold bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-full transition-all active:scale-95 shrink-0 relative z-30 shadow-sm "; // ইনফিনিট স্ক্রল থাকায় এটি হাইড করে রাখা হলো
             } else {
                 viewAllBtn.innerText = 'কম দেখুন';
                 viewAllBtn.setAttribute('onclick', "collapseDatabaseList()");
-                viewAllBtn.className = "text-[11px] text-slate-600 font-bold bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full transition-all active:scale-95 shrink-0 relative z-30 shadow-sm hidden"; // ইনফিনিট স্ক্রল থাকায় এটি হাইড করে রাখা হলো
+                viewAllBtn.className = "text-[11px] text-slate-600 font-bold bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full transition-all active:scale-95 shrink-0 relative z-30 shadow-sm "; // ইনফিনিট স্ক্রল থাকায় এটি হাইড করে রাখা হলো
             }
-
-
         }
     };
 
@@ -1844,7 +1821,7 @@ function toggleDashboardView() {
         // শুধুমাত্র এই অংশটুকু পরিবর্তন করা হলো (Infinite Scroll)
         // ==========================================
         window.filteredDbStudents = allStudents;
-        window.dbLoadedCount = 20;
+        window.dbLoadedCount = 10;
 
         let allStudentsHtml = ''; 
 
