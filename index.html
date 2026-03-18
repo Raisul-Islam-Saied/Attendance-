@@ -578,11 +578,17 @@
         </div>
     </div>
 </div>
-<div id="image-viewer-modal" class="fixed inset-0 z-[999999] hidden items-center justify-center bg-black/95 backdrop-blur-md transition-opacity duration-300 opacity-0" onclick="closeImageViewer()">
+<div id="image-viewer-modal" class="fixed inset-0 z-[999999] hidden items-center justify-center bg-slate-900/60 backdrop-blur-xl transition-opacity duration-300 opacity-0" onclick="closeImageViewer()">
     
-    <button onclick="closeImageViewer()" class="absolute top-4 right-4 z-[1000000] w-10 h-10 bg-white/10 hover:bg-white/25 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-all active:scale-90">
-        <i class="fa-solid fa-xmark text-xl"></i>
-    </button>
+    <div class="absolute top-4 right-4 z-[1000000] flex items-center gap-3">
+        <button onclick="downloadViewerImage(event)" class="w-10 h-10 bg-white/20 hover:bg-white/30 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-all active:scale-90 shadow-lg border border-white/10" title="ছবি ডাউনলোড করুন">
+            <i class="fa-solid fa-download"></i>
+        </button>
+
+        <button onclick="closeImageViewer()" class="w-10 h-10 bg-red-500/80 hover:bg-red-500 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-all active:scale-90 shadow-lg border border-white/10" title="বন্ধ করুন">
+            <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+    </div>
 
     <div class="relative w-full h-full flex items-center justify-center p-4 cursor-zoom-out">
         <img id="viewer-full-img" src="" class="max-w-full max-h-full object-contain rounded-[20px] shadow-2xl transform scale-50 transition-transform duration-300 ease-out cursor-default" onclick="event.stopPropagation()">
@@ -671,7 +677,8 @@
         splash.style.opacity = '0';  
         setTimeout(() => { splash.style.visibility = 'hidden'; }, 600);  
     }  
-// === NEXT-LEVEL IMAGE VIEWER LOGIC ===
+
+    // === NEXT-LEVEL IMAGE VIEWER LOGIC ===
 function openImageViewer(src) {
     if (!src) return;
     
@@ -710,6 +717,34 @@ function closeImageViewer(fromPopState = false) {
         history.back();
     }
 }
+
+// ছবি ডাউনলোড করার ফাংশন
+function downloadViewerImage(event) {
+    event.stopPropagation(); // ডাউনলোড বাটনে ক্লিক করলে যেন মডাল বন্ধ না হয়ে যায়
+    
+    const imgElement = document.getElementById('viewer-full-img');
+    const imgSrc = imgElement.src;
+    
+    if (!imgSrc) return;
+
+    // যদি ইমেজটি UI-Avatars (ডিফল্ট) হয়, তবে সেটি সরাসরি সেভ করা যাবে
+    // আর যদি আপনার সার্ভারের ইমেজ হয়, তবে এই লজিকটি ব্রাউজারে সরাসরি ডাউনলোড ট্রিগার করবে
+    const link = document.createElement('a');
+    link.href = imgSrc;
+    
+    // ডাউনলোড ফাইলের নাম ডাইনামিক করা হলো
+    const studentName = document.getElementById('modal-name-en')?.innerText || 'Student';
+    link.download = `${studentName}_Profile_Picture.jpg`; 
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    if(typeof Toast !== 'undefined') {
+        Toast.fire({ icon: 'success', title: 'ডাউনলোড শুরু হয়েছে!' });
+    }
+}
+
 
     /** * ==========================================  
      * STUDENT PROFILE MODAL (ALL DATA INCLUDED)
