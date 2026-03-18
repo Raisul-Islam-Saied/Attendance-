@@ -1447,7 +1447,7 @@ function toggleDashboardView() {
     const modeName = state.dashboardViewMode === 'recent' ? 'রিসেন্ট লিস্ট' : 'সম্পূর্ণ ডাটাবেস';
   //  Toast.fire({ icon: 'info', title: `ভিউ পরিবর্তন: ${modeName}` });
 }
-        // --- গ্লোবাল ভ্যারিয়েবল ও ফাংশন (ডাটাবেস এক্সপ্যান্ড এবং সার্চ করার জন্য) ---
+         // --- গ্লোবাল ভ্যারিয়েবল ও ফাংশন (ডাটাবেস এক্সপ্যান্ড এবং সার্চ করার জন্য) ---
     window.dbViewExpanded = window.dbViewExpanded || false;
     window.dbSearchTerm = window.dbSearchTerm || '';
     window.isDbSearchOpen = window.isDbSearchOpen || false;
@@ -1503,7 +1503,7 @@ function toggleDashboardView() {
         if(e.key === 'Enter') {
             window.closeDbSearch(); // এন্টার দিলে সার্চ বার হাইড হবে, কিন্তু রেজাল্ট থাকবে
         } else {
-            renderDbList(); // টাইপ করার সাথে সাথে শুধু লিস্ট আপডেট হবে (ইনপুট ফোকাস হারাবেবিধা না)
+            renderDbList(); // টাইপ করার সাথে সাথে শুধু লিস্ট আপডেট হবে (ইনপুট ফোকাস হারাবে না)
             renderDbHeader(); // ব্যাজ আপডেট করার জন্য
         }
     };
@@ -1718,11 +1718,11 @@ function toggleDashboardView() {
             if (!window.dbViewExpanded && !window.dbSearchTerm) {
                 viewAllBtn.innerText = 'সব দেখুন';
                 viewAllBtn.setAttribute('onclick', "expandDatabaseList()");
-                viewAllBtn.className = "text-[11px] text-indigo-600 font-bold bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-full transition-all active:scale-95 shrink-0 relative z-30 shadow-sm";
+                viewAllBtn.className = "text-[11px] text-indigo-600 font-bold bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-full transition-all active:scale-95 shrink-0 relative z-30 shadow-sm hidden"; // ইনফিনিট স্ক্রল থাকায় এটি হাইড করে রাখা হলো
             } else {
                 viewAllBtn.innerText = 'কম দেখুন';
                 viewAllBtn.setAttribute('onclick', "collapseDatabaseList()");
-                viewAllBtn.className = "text-[11px] text-slate-600 font-bold bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full transition-all active:scale-95 shrink-0 relative z-30 shadow-sm";
+                viewAllBtn.className = "text-[11px] text-slate-600 font-bold bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full transition-all active:scale-95 shrink-0 relative z-30 shadow-sm hidden"; // ইনফিনিট স্ক্রল থাকায় এটি হাইড করে রাখা হলো
             }
         }
     };
@@ -1808,24 +1808,24 @@ function toggleDashboardView() {
                 const aId = normalizeSearchText(a.id || '').replace(/[-\s]/g, '');
                 const bId = normalizeSearchText(b.id || '').replace(/[-\s]/g, '');
                 
-                // ১. যদি আইডি হুবহু মিলে যায় (Exact Match), তবে সে সবার আগে
                 if (aId === cleanTermForId && bId !== cleanTermForId) return -1;
                 if (bId === cleanTermForId && aId !== cleanTermForId) return 1;
                 
-                // ২. যদি আইডির অংশবিশেষ মিলে (Partial Match), তবে সে দ্বিতীয় প্রায়োরিটি পাবে
                 if (aId.includes(cleanTermForId) && !bId.includes(cleanTermForId)) return -1;
                 if (bId.includes(cleanTermForId) && !aId.includes(cleanTermForId)) return 1;
             }
-            
-            // ৩. আর কোনো সার্চ না থাকলে বা আইডির মিল না থাকলে ডিফল্ট জন্মদিনের সর্টিং কাজ করবে
             return a.daysToBday - b.daysToBday;
         });
 
-        // এক্সপ্যান্ড স্টেট বা সার্চ থাকলে সব ডাটা দেখাবে, না হলে ১০ টি
-        const displayLimit = (window.dbViewExpanded || term) ? allStudents.length : 10;
+        // ==========================================
+        // শুধুমাত্র এই অংশটুকু পরিবর্তন করা হলো (Infinite Scroll)
+        // ==========================================
+        window.filteredDbStudents = allStudents;
+        window.dbLoadedCount = 20;
+
         let allStudentsHtml = ''; 
 
-        allStudents.slice(0, displayLimit).forEach(s => {
+        allStudents.slice(0, window.dbLoadedCount).forEach(s => {
             const img = s.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.nameEn || 'S')}&background=random`;  
             allStudentsHtml += `  
                 <div onclick="openStudentProfile('${s.id}')" class="bg-white p-3.5 rounded-[20px] shadow-[0_2px_8px_-4px_rgba(0,0,0,0.06)] border border-slate-100 flex items-center gap-3.5 transition-all hover:shadow-md active:scale-[0.98] fade-in mb-3">  
@@ -1845,10 +1845,77 @@ function toggleDashboardView() {
                     </div>
                 </div>`;  
         });
+
+        // যদি আরও ডাটা থাকে, নিচে একটি লোডার (Sentinel) যোগ হবে
+        if (window.filteredDbStudents.length > window.dbLoadedCount) {
+            allStudentsHtml += `<div id="db-scroll-sentinel" class="py-4 w-full flex justify-center items-center"><i class="fa-solid fa-spinner fa-spin text-indigo-400 text-xl"></i></div>`;
+        }
+
         listContainer.innerHTML = allStudentsHtml;
+        
+        // স্ক্রল অবজর্ভার চালু করা
+        setTimeout(window.setupDbScrollObserver, 100);
     };
 
-     
+    // ==========================================
+    // ইনফিনিট স্ক্রলের জন্য নতুন ফাংশনসমূহ
+    // ==========================================
+    window.setupDbScrollObserver = function() {
+        if (window.dbScrollObserver) window.dbScrollObserver.disconnect();
+        const sentinel = document.getElementById('db-scroll-sentinel');
+        if (!sentinel) return;
+
+        window.dbScrollObserver = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) {
+                window.loadMoreDbStudents();
+            }
+        }, { rootMargin: '200px' });
+
+        window.dbScrollObserver.observe(sentinel);
+    };
+
+    window.loadMoreDbStudents = function() {
+        const listContainer = document.getElementById('dash-recent-list');
+        const sentinel = document.getElementById('db-scroll-sentinel');
+        if (!sentinel || !listContainer) return;
+
+        if (window.dbScrollObserver) window.dbScrollObserver.disconnect();
+        sentinel.remove();
+
+        const nextBatch = window.filteredDbStudents.slice(window.dbLoadedCount, window.dbLoadedCount + 20);
+        window.dbLoadedCount += 20;
+
+        let newHtml = '';
+        nextBatch.forEach(s => {
+            const img = s.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.nameEn || 'S')}&background=random`;  
+            newHtml += `  
+                <div onclick="openStudentProfile('${s.id}')" class="bg-white p-3.5 rounded-[20px] shadow-[0_2px_8px_-4px_rgba(0,0,0,0.06)] border border-slate-100 flex items-center gap-3.5 transition-all hover:shadow-md active:scale-[0.98] fade-in mb-3">  
+                    <div class="relative shrink-0">
+                        <img src="${img}" class="w-12 h-12 rounded-full object-cover border-2 border-emerald-50 shadow-sm" onerror="this.src='https://ui-avatars.com/api/?name=S&background=random'">
+                    </div>
+                    <div class="flex-1 min-w-0">  
+                        <h4 class="font-bold text-slate-800 text-[14px] truncate mb-1">${s.nameBn || s.StudentNameBn || s.nameEn || 'অজানা'}${s.bdayBadge}</h4>  
+                        <div class="flex flex-wrap items-center gap-1.5">  
+                            <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded text-[9px] font-bold">ID: ${s.id}</span>  
+                            <span class="bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded text-[9px] font-bold">Roll: ${e2b(s.roll || s.Roll || '-')}</span>
+                            <span class="bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded text-[9px] font-bold">${s.classBn || s.ClassBn || '-'}</span>
+                        </div>  
+                    </div>  
+                    <div class="shrink-0 text-indigo-400 opacity-40">
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </div>
+                </div>`;  
+        });
+
+        if (window.filteredDbStudents.length > window.dbLoadedCount) {
+            newHtml += `<div id="db-scroll-sentinel" class="py-4 w-full flex justify-center items-center"><i class="fa-solid fa-spinner fa-spin text-indigo-400 text-xl"></i></div>`;
+        }
+
+        // insertAdjacentHTML দিয়ে রেন্ডার করায় 0% পারফরম্যান্স ড্রপ হবে
+        listContainer.insertAdjacentHTML('beforeend', newHtml);
+        window.setupDbScrollObserver();
+    };
+
       function renderHistoryUI(searchTerm = '') {  
         const listContainer = document.getElementById('full-history-list');  
         let filteredData = [...state.historyData];  
