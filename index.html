@@ -228,10 +228,11 @@
         </div>
 
 
-        <div class="flex justify-between items-center mb-4">  
-            <h3 id="dash-list-title" class="font-bold text-slate-800 text-lg">সর্বশেষ অনুসন্ধানকৃত</h3>  
- <button onclick="switchTab('history')" class="text-xs text-indigo-600 font-semibold bg-indigo-50 px-3 py-1.5 rounded-full">সব দেখুন</button>  
-        </div>  
+        <div class="flex justify-between items-center mb-2 sticky top-[-20px] z-30 bg-slate-50/95 backdrop-blur-sm -mx-5 px-5 pt-5 pb-3 border-b border-slate-200 shadow-sm transition-all">  
+    <h3 id="dash-list-title" class="font-bold text-slate-800 text-lg">সর্বশেষ অনুসন্ধানকৃত</h3>  
+    <button onclick="switchTab('history')" class="text-xs text-indigo-600 font-semibold bg-indigo-50 px-3 py-1.5 rounded-full shadow-sm">সব দেখুন</button>  
+</div>
+
 
         <div id="dash-recent-list" class="space-y-3">  
             </div>  
@@ -1638,7 +1639,8 @@ function toggleDashboardView() {
         const headerParent = listTitle ? listTitle.parentElement : null;
 
         if (!headerParent) return;
-        headerParent.classList.add('relative', 'w-full');
+headerParent.classList.remove('relative'); 
+headerParent.classList.add('sticky', 'w-full', 'z-30');
 
         // ফিক্স: শুধুমাত্র হেডার অংশের বাটনটিকেই ধরা হচ্ছে
         let viewAllBtn = null;
