@@ -409,8 +409,8 @@
         </button>
 
         <div class="bg-white pt-8 pb-4 px-6 flex items-center gap-4 border-b border-slate-100 shrink-0">
-            <img id="modal-img" src="" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover shadow-sm border border-slate-100 shrink-0 bg-slate-50">
-            
+            <img id="modal-img" onclick="openImageViewer(this.src)" src="" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover shadow-sm border border-slate-100 shrink-0 bg-slate-50 cursor-pointer hover:opacity-90 active:scale-95 transition-all" title="বড় করে দেখুন">
+
             <div class="flex-1 min-w-0">
                 <h2 id="modal-name-en" class="text-xl font-bold text-slate-800 leading-tight truncate"></h2>
                 <p id="modal-name-bn" class="text-sm font-medium text-slate-500 mt-0.5 truncate"></p>
@@ -578,6 +578,16 @@
         </div>
     </div>
 </div>
+<div id="image-viewer-modal" class="fixed inset-0 z-[999999] hidden items-center justify-center bg-black/95 backdrop-blur-md transition-opacity duration-300 opacity-0" onclick="closeImageViewer()">
+    
+    <button onclick="closeImageViewer()" class="absolute top-4 right-4 z-[1000000] w-10 h-10 bg-white/10 hover:bg-white/25 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-all active:scale-90">
+        <i class="fa-solid fa-xmark text-xl"></i>
+    </button>
+
+    <div class="relative w-full h-full flex items-center justify-center p-4 cursor-zoom-out">
+        <img id="viewer-full-img" src="" class="max-w-full max-h-full object-contain rounded-[20px] shadow-2xl transform scale-50 transition-transform duration-300 ease-out cursor-default" onclick="event.stopPropagation()">
+    </div>
+</div>
 
 <div id="print-engine"></div>
 <!-- JavaScript Application Logic -->  
@@ -661,6 +671,45 @@
         splash.style.opacity = '0';  
         setTimeout(() => { splash.style.visibility = 'hidden'; }, 600);  
     }  
+// === NEXT-LEVEL IMAGE VIEWER LOGIC ===
+function openImageViewer(src) {
+    if (!src) return;
+    
+    const viewer = document.getElementById('image-viewer-modal');
+    const fullImg = document.getElementById('viewer-full-img');
+    
+    fullImg.src = src;
+    
+    viewer.classList.remove('hidden');
+    // রিফ্লো (Reflow) ট্রিগার করা, যাতে জুম অ্যানিমেশন কাজ করে
+    void viewer.offsetWidth;
+    
+    viewer.classList.remove('opacity-0');
+    fullImg.classList.remove('scale-50');
+    fullImg.classList.add('scale-100');
+    
+    // ব্যাক বাটনের জন্য হিস্ট্রি পুশ করা
+    history.pushState({ imageViewerOpen: true }, "");
+}
+
+function closeImageViewer(fromPopState = false) {
+    const viewer = document.getElementById('image-viewer-modal');
+    const fullImg = document.getElementById('viewer-full-img');
+    
+    viewer.classList.add('opacity-0');
+    fullImg.classList.remove('scale-100');
+    fullImg.classList.add('scale-50');
+    
+    setTimeout(() => {
+        viewer.classList.add('hidden');
+        fullImg.src = ''; // রিসেট
+    }, 300);
+
+    // ম্যানুয়ালি ক্লোজ করলে হিস্ট্রি থেকে রিমুভ করা
+    if (fromPopState !== true && history.state && history.state.imageViewerOpen) {
+        history.back();
+    }
+}
 
     /** * ==========================================  
      * STUDENT PROFILE MODAL (ALL DATA INCLUDED)
@@ -3187,25 +3236,35 @@ function loadManualData() {
     });
 }
 // Mobile back button close modals
+// Mobile back button close modals
+// Mobile back button close modals
 window.addEventListener("popstate", function(event) {
-    // স্টুডেন্ট প্রোফাইল মডাল চেক
+    // ১. ইমেজ ভিউয়ার চেক (সবার আগে, কারণ এটি সবচেয়ে উপরে থাকে)
+    const imageViewer = document.getElementById("image-viewer-modal");
+    if (imageViewer && !imageViewer.classList.contains("hidden")) {
+        closeImageViewer(true);
+        return; // এখানেই থেমে যাবে, যাতে প্রোফাইল মডালটি বন্ধ না হয়
+    }
+
+    // ২. স্টুডেন্ট প্রোফাইল মডাল চেক
     const profileModal = document.getElementById("student-profile-modal");
     if (profileModal && !profileModal.classList.contains("hidden")) {
         closeStudentProfile();
     }
 
-    // ফিল্টার মডাল চেক
+    // ৩. ফিল্টার মডাল চেক
     const filterModal = document.getElementById("filter-modal");
     if (filterModal && !filterModal.classList.contains("hidden")) {
         closeFilterModal();
     }
 
-    // পিডিএফ এক্সপোর্ট মডাল চেক
+    // ৪. পিডিএফ এক্সপোর্ট মডাল চেক
     const pdfModal = document.getElementById("pdf-export-modal");
     if (pdfModal && !pdfModal.classList.contains("hidden")) {
-        closePdfModal(true); // true পাঠানো হচ্ছে যাতে ডাবল back() ফায়ার না হয়
+        closePdfModal(true);
     }
 });
+
 if ("serviceWorker" in navigator) {
 
   navigator.serviceWorker.register("./service-worker.js")
