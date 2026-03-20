@@ -1750,8 +1750,9 @@ function toggleDashboardView() {
                 const rollStr = normalizeSearchText(s.roll || s.Roll || '');
                 const idStr = normalizeSearchText(s.id || '').replace(/[-\s]/g, '');
                 const mobileStr = normalizeSearchText(s.WhatsApp || s.whatsapp || s.Mobile || s.mobile || s.EmergencyNo || '');
+                const classStr = normalizeSearchText(s.classBn || s.classEn || '');
                 
-                return idStr.includes(cleanTermForId) || nameBn.includes(term) || nameEn.includes(term) || rollStr === term || mobileStr.includes(term);
+                return idStr.includes(cleanTermForId) || nameBn.includes(term) || nameEn.includes(term) || rollStr === term || mobileStr.includes(term)||  classStr.includes(term);
             });
         }
 
