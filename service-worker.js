@@ -1,55 +1,54 @@
-// ===============================
-// SALARY SHEET FAST OFFLINE SW
-// ===============================
+const CACHE_NAME = 'student_info';
 
-const CACHE_NAME = "salary-sheet-cache";
+// যে ফাইলগুলো অফলাইনে চলার জন্য সেভ থাকবে
+const STATIC_ASSETS = [
+    '/',
+    '/index.html',
+    '/manifest.json',
+    '/logo.png'
+];
 
-
-// ------------ INSTALL ------------
-self.addEventListener("install", event => {
-  self.skipWaiting();
+self.addEventListener('install', (event) => {
+    self.skipWaiting();
+    event.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
+    );
 });
 
-
-// ------------ ACTIVATE ------------
-self.addEventListener("activate", event => {
-  self.clients.claim();
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        caches.keys().then((keys) => {
+            return Promise.all(
+                keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+            );
+        })
+    );
+    self.clients.claim();
 });
 
+self.addEventListener('fetch', (event) => {
+    const req = event.request;
+    const url = new URL(req.url);
 
-// ------------ FETCH ------------
-self.addEventListener("fetch", event => {
+    // 🚨 Google Apps Script, SMS API এবং Proxy রিকোয়েস্ট কখনোই ক্যাশ করবে না
+    if (url.pathname.includes('/proxy') || url.hostname.includes('script.google.com') || url.pathname.includes('balance')) {
+        event.respondWith(fetch(req)); 
+        return;
+    }
 
-  if (event.request.method !== "GET") return;
-
-  const url = new URL(event.request.url);
-
-  // external resource bypass
-  if (url.origin !== location.origin) return;
-
-  event.respondWith(
-
-    caches.match(event.request)
-      .then(cachedResponse => {
-
-        const networkFetch = fetch(event.request)
-          .then(networkResponse => {
-
-            const clone = networkResponse.clone();
-
-            caches.open(CACHE_NAME)
-              .then(cache => cache.put(event.request, clone));
-
-            return networkResponse;
-
-          })
-          .catch(() => cachedResponse);
-
-        // cache থাকলে instant load
-        return cachedResponse || networkFetch;
-
-      })
-
-  );
-
+    // বাকি সব কিছুর জন্য "Stale-While-Revalidate" রুল
+    event.respondWith(
+        caches.match(req).then((cachedRes) => {
+            const networkFetch = fetch(req).then((networkRes) => {
+                if (networkRes && networkRes.status === 200 && networkRes.type === 'basic') {
+                    const clone = networkRes.clone();
+                    caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
+                }
+                return networkRes;
+            }).catch(() => {
+                // অফলাইনে থাকলে ক্যাশ থেকে দেখাবে
+            });
+            return cachedRes || networkFetch;
+        })
+    );
 });
