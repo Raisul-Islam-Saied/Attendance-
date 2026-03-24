@@ -1517,11 +1517,29 @@ function toggleDashboardView() {
     };
 
     // Helper function for converting Bangla digits to English for accurate searching
-    function normalizeSearchText(str) {
-        if (!str) return '';
-        const bnToEn = {'০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9'};
-        return String(str).replace(/[০-৯]/g, d => bnToEn[d] || d).toLowerCase().trim();
-    }
+    // আগের normalizeSearchText ফাংশনটি মুছে নিচেরটি বসিয়ে দিন
+function normalizeSearchText(str) {
+    if (!str) return '';
+    
+    // ১. বাংলা সংখ্যাকে ইংরেজি সংখ্যায় রূপান্তর (আগের মতোই থাকবে)
+    const bnToEn = {'০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9'};
+    let text = String(str).replace(/[০-৯]/g, d => bnToEn[d] || d).toLowerCase().trim();
+    
+    // ২. বাংলা বানানের সাধারণ ভুলগুলো একীভূত করা (Smart Fuzzy Match Logic)
+    text = text
+        .replace(/ী/g, 'ি')      // দীর্ঘ-ঈ কার (ী) থাকলে হ্রস্ব-ই কার (ি) ধরবে
+        .replace(/ূ/g, 'ু')      // দীর্ঘ-ঊ কার (ূ) থাকলে হ্রস্ব-উ কার (ু) ধরবে
+        .replace(/ৌ/g, 'ো')      // ঔ-কার (ৌ) কে ও-কার (ো) ধরবে
+        .replace(/[শষ]/g, 'স')   // শ, ষ লিখে সার্চ করলেও 'স' হিসেবে মেলাবে
+        .replace(/ণ/g, 'ন')      // ণ এবং ন কে একই ধরবে
+        .replace(/য/g, 'জ')      // য এবং জ কে একই ধরবে
+        .replace(/[ড়ঢ়]/g, 'র')   // ড়, ঢ় এবং র কে একই ধরবে
+        .replace(/ৎ/g, 'ত')      // খণ্ড-ত (ৎ) কে ত ধরবে
+        .replace(/[ঁ]/g, '');    // চন্দ্রবিন্দু (ঁ) রিমুভ করে দেবে (অনেকে টাইপ করতে ভুলে যায় তাই)
+        
+    return text;
+}
+
 
     // মূল আপডেট ড্যাশবোর্ড ফাংশন
     function updateDashboardUI() {  
@@ -3002,6 +3020,19 @@ function addFilterRule() {
 }
 function updateFilterInputUI(el) {
     const row = el.closest('.filter-rule-item');
+
+    // --- শুধুমাত্র এই লজিকটুকু নতুন যোগ করা হলো (অটোমেটিক Contains) ---
+    if (el && el.classList.contains('rule-field')) {
+        if (el.value === 'StudentNameBn') {
+            row.querySelector('.rule-operator').value = 'contains';
+        } else if (el.value === 'ID' || el.value === 'Roll') {
+            if (row.querySelector('.rule-operator').value === 'contains') {
+                row.querySelector('.rule-operator').value = '==';
+            }
+        }
+    }
+    // -----------------------------------------------------------------
+
     const field = row.querySelector('.rule-field').value;
     const operator = row.querySelector('.rule-operator').value;
     const valContainer = row.querySelector('.rule-value-container');
@@ -3138,10 +3169,26 @@ function resetFilter() {
 
 function normalizeText(text) {
     if (text === undefined || text === null) return "";
+    
+    // ১. বাংলা সংখ্যাকে ইংরেজি সংখ্যায় রূপান্তর
     const bnToEn = {'০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9'};
-    return String(text).replace(/[০-৯]/g, d => bnToEn[d] || d).toLowerCase().trim();
+    let str = String(text).replace(/[০-৯]/g, d => bnToEn[d] || d).toLowerCase().trim();
+    
+    // ২. অ্যাডভান্সড ফনেটিক ম্যাচিং (ি/ী, ু/ূ, শ/স এর কনফ্লিক্ট এড়াতে)
+    str = str
+        .replace(/ী/g, 'ি')      
+        .replace(/ূ/g, 'ু')      
+        .replace(/ৌ/g, 'ো')      
+        .replace(/[শষ]/g, 'স')   
+        .replace(/ণ/g, 'ন')      
+        .replace(/য/g, 'জ')      
+        .replace(/[ড়ঢ়]/g, 'র')   
+        .replace(/ৎ/g, 'ত')      
+        .replace(/[ঁ]/g, '');    
+        
+    return str;
 }
-    function getStudentFieldValue(st, fieldKey) {
+function getStudentFieldValue(st, fieldKey) {
     if (fieldKey === 'id' || fieldKey === 'ID') return st.id || st.ID || '';
     if (fieldKey === 'Roll') return st.roll || st.Roll || '';
     if (fieldKey === 'ClassBn') return st.classBn || st.ClassBn || '';
